@@ -29,12 +29,13 @@ const SUIT_COLOR: Record<Card["suit"], string> = {
   c: "text-(--suit-club)",
 };
 
-export function PlayingCard({ card, size = "md", highlight = false }: { card: Card; size?: CardSize; highlight?: boolean }) {
+/** animate: テーブルに配られたときだけ動きをつける (一覧や履歴では付けない) */
+export function PlayingCard({ card, size = "md", highlight = false, animate = false }: { card: Card; size?: CardSize; highlight?: boolean; animate?: boolean }) {
   return (
     <div
       role="img"
       aria-label={`${SUIT_NAMES[card.suit]}の${rankLabel(card.rank)}`}
-      className={`animate-deal flex shrink-0 flex-col justify-between border border-[#d9d9d4] bg-white font-bold shadow-[0_1px_3px_rgba(0,0,0,.2)] ${box[size]} ${
+      className={`${animate ? "animate-deal " : ""}flex shrink-0 flex-col justify-between border border-[#d9d9d4] bg-white font-bold shadow-[0_1px_3px_rgba(0,0,0,.2)] ${box[size]} ${
         SUIT_COLOR[card.suit]
       } ${highlight ? "outline-3 outline-offset-2 outline-[#8fb3ff]" : ""}`}
     >

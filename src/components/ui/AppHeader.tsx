@@ -32,7 +32,7 @@ export function AppHeader({ back, children, right, compact }: Props) {
     >
       <div className="flex min-w-0 items-center gap-3 text-sm sm:gap-4">
         {back ? (
-          <Link href={back.href} onClick={back.onClick} className="-ml-1 flex items-center gap-1 rounded px-1 py-1 text-muted hover:text-foreground">
+          <Link href={back.href} onClick={back.onClick} className="-ml-1 flex shrink-0 items-center gap-1 rounded px-1 py-1 whitespace-nowrap text-muted hover:text-foreground">
             <ChevronLeftIcon />
             <span>{back.label}</span>
           </Link>

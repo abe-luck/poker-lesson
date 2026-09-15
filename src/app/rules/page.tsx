@@ -17,6 +17,9 @@ export default function RulesPage() {
           <Link href="/hands" className={buttonClass("secondary", "lg")}>
             役一覧を見る
           </Link>
+          <Link href="/tutorial" className={buttonClass("secondary", "lg")}>
+            チュートリアルで練習する
+          </Link>
           <Link href="/play" className={buttonClass("primary", "lg")}>
             遊んでみる
           </Link>

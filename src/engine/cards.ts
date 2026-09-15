@@ -56,6 +56,31 @@ export function parseCard(text: string): Card {
   return { rank: (index + 2) as Rank, suit: suit as Suit };
 }
 
+/**
+ * 配る順どおりに山札を組む (チュートリアルとテスト用)。
+ * holes: ディーラーの左から配る順の手札 ("As Kd" 形式)
+ * board: 場に開く5枚。バーンカードと残りは使っていないカードで埋める
+ */
+export function stackDeck(holes: string[], board: string): Card[] {
+  const holeCards = holes.map(parseCards);
+  const boardCards = parseCards(board);
+  const used = new Set([...holeCards.flat(), ...boardCards].map(cardToString));
+  const filler = createDeck().filter((c) => !used.has(cardToString(c)));
+  const burn = () => filler.shift()!;
+
+  return [
+    ...holeCards.map((h) => h[0]),
+    ...holeCards.map((h) => h[1]),
+    burn(),
+    ...boardCards.slice(0, 3),
+    burn(),
+    boardCards[3],
+    burn(),
+    boardCards[4],
+    ...filler,
+  ];
+}
+
 /** 例: "As Kd 7h" → 3枚 */
 export function parseCards(text: string): Card[] {
   return text.split(/\s+/).filter(Boolean).map(parseCard);

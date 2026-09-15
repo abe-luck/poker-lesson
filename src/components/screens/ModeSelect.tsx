@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Mode } from "@/engine/types";
 import { useGameStore } from "@/store/gameStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/Button";
 
@@ -40,10 +42,12 @@ function CheckIcon() {
 export function ModeSelect() {
   const router = useRouter();
   const updateDraft = useGameStore((s) => s.updateDraft);
+  const tutorialDone = useSettingsStore((s) => s.tutorialDone);
 
   const choose = (mode: Mode) => {
     updateDraft({ mode });
-    router.push("/play/setup");
+    // 初心者モードを初めて選んだときは、3ハンドの練習から
+    router.push(mode === "beginner" && !tutorialDone ? "/tutorial" : "/play/setup");
   };
 
   return (
@@ -86,7 +90,13 @@ export function ModeSelect() {
           })}
         </div>
         <p className="text-center text-[13px] text-muted">
-          過去のハンド履歴と成績の記録は、今後追加します。
+          {tutorialDone ? (
+            <Link href="/tutorial" className="text-accent underline-offset-4 hover:underline">
+              チュートリアル（3ハンドの練習）をもう一度やる
+            </Link>
+          ) : (
+            "初心者モードを初めて選ぶと、3ハンドの練習から始まります。"
+          )}
         </p>
       </main>
     </div>

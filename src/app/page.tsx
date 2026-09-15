@@ -4,7 +4,7 @@ import { LogoMark } from "@/components/ui/AppHeader";
 import { ResumeButton } from "@/components/screens/ResumeButton";
 import { buttonClass } from "@/components/ui/Button";
 
-type MenuItem = { title: string; description: string; icon: ReactNode; href?: string };
+type MenuItem = { title: string; description: string; icon: ReactNode; href: string };
 
 const iconProps = {
   width: 22,
@@ -18,7 +18,6 @@ const iconProps = {
   "aria-hidden": true,
 } as const;
 
-// 成績と設定はまだないため、リンクなしで「準備中」と表示する
 const menu: MenuItem[] = [
   {
     title: "ルール説明",
@@ -42,6 +41,7 @@ const menu: MenuItem[] = [
   },
   {
     title: "成績",
+    href: "/stats",
     description: "勝率と収支を確認",
     icon: (
       <svg {...iconProps}>
@@ -129,36 +129,19 @@ export default function Home() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {menu.map((item) => {
-            const body = (
-              <>
-                <span className="text-felt">{item.icon}</span>
-                <div className="flex flex-col gap-1">
-                  <span className="flex items-center gap-2 text-[15px] font-bold">
-                    {item.title}
-                    {!item.href && (
-                      <span className="rounded-full bg-chip px-2 py-0.5 text-[11px] font-medium text-muted">準備中</span>
-                    )}
-                  </span>
-                  <span className="text-[13px] text-muted">{item.description}</span>
-                </div>
-              </>
-            );
-            const base = "flex items-start gap-3.5 rounded-xl border border-border bg-surface p-5";
-            return item.href ? (
-              <Link
-                key={item.title}
-                href={item.href}
-                className={`${base} transition hover:border-line hover:shadow-[0_2px_8px_rgba(0,0,0,.06)]`}
-              >
-                {body}
-              </Link>
-            ) : (
-              <div key={item.title} className={base}>
-                {body}
+          {menu.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="flex items-start gap-3.5 rounded-xl border border-border bg-surface p-5 transition hover:border-line hover:shadow-[0_2px_8px_rgba(0,0,0,.06)]"
+            >
+              <span className="text-felt">{item.icon}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-[15px] font-bold">{item.title}</span>
+                <span className="text-[13px] text-muted">{item.description}</span>
               </div>
-            );
-          })}
+            </Link>
+          ))}
         </section>
       </main>
 

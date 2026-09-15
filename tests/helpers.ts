@@ -1,31 +1,9 @@
-import { cardToString, createDeck, parseCards } from "@/engine/cards";
+import { stackDeck } from "@/engine/cards";
 import { applyAction, createGame, type NewGameOptions } from "@/engine/game";
-import type { Action, Card, GameState } from "@/engine/types";
+import type { Action, GameState } from "@/engine/types";
 
-/**
- * 配る順どおりに山札を組む。
- * holes: ディーラーの左から配る順の手札 ("As Kd" 形式)
- * board: 場に開く5枚。バーンカードと残りは使っていないカードで埋める
- */
-export function riggedDeck(holes: string[], board: string): Card[] {
-  const holeCards = holes.map(parseCards);
-  const boardCards = parseCards(board);
-  const used = new Set([...holeCards.flat(), ...boardCards].map(cardToString));
-  const filler = createDeck().filter((c) => !used.has(cardToString(c)));
-  const burn = () => filler.shift()!;
-
-  return [
-    ...holeCards.map((h) => h[0]),
-    ...holeCards.map((h) => h[1]),
-    burn(),
-    ...boardCards.slice(0, 3),
-    burn(),
-    boardCards[3],
-    burn(),
-    boardCards[4],
-    ...filler,
-  ];
-}
+/** 配る順どおりに山札を組む (engine の stackDeck と同じ) */
+export const riggedDeck = stackDeck;
 
 export function newGame(count: number, overrides: Partial<NewGameOptions> = {}): GameState {
   return createGame({

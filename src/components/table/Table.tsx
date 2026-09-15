@@ -77,7 +77,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
         {info.reveal ? (
           <div className="flex gap-0.5">
             {player.holeCards.map((card) => (
-              <PlayingCard key={`${card.rank}${card.suit}`} card={card} size="sm" />
+              <PlayingCard key={`${card.rank}${card.suit}`} card={card} size="sm" animate />
             ))}
           </div>
         ) : (
@@ -122,7 +122,7 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
       <div className="flex gap-2">
         {player.holeCards.length > 0 ? (
           player.holeCards.map((card) => (
-            <PlayingCard key={`${card.rank}${card.suit}`} card={card} size="lg" highlight={used.some((u) => sameCard(u, card))} />
+            <PlayingCard key={`${card.rank}${card.suit}`} card={card} size="lg" animate highlight={used.some((u) => sameCard(u, card))} />
           ))
         ) : (
           <>
@@ -177,7 +177,7 @@ function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) 
         {Array.from({ length: 5 }, (_, i) => {
           const card = state.board[i];
           return card ? (
-            <PlayingCard
+            <PlayingCard animate
               key={i}
               card={card}
               highlight={winningCards.some((w) => sameCard(w, card))}
