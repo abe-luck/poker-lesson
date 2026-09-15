@@ -1,4 +1,4 @@
-import type { HandCategory, LogEntry, Mode, Street, Suit } from "@/engine/types";
+import type { HandCategory, LogEntry, Mode, Persona, Street, Suit } from "@/engine/types";
 import type { Dictionary } from "./ja";
 
 const n = (value: number) => value.toLocaleString("en-US");
@@ -50,6 +50,7 @@ export const en: Dictionary = {
       setup: "Game setup",
       game: "Game",
       tutorial: "Tutorial",
+      practice: "Practice",
       rules: "Rules",
       hands: "Hand rankings",
       stats: "Stats",
@@ -80,6 +81,14 @@ export const en: Dictionary = {
     list: (items: string[]) => (items.length <= 2 ? items.join(" and ") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`),
     languageSwitch: { label: "日本語", href: "/" },
   },
+
+  personas: {
+    cautious: { name: "Emma", trait: "Cautious", description: "Folds quickly with weak hands" },
+    aggressive: { name: "Leo", trait: "Aggressive", description: "Bets and raises often" },
+    balanced: { name: "Mia", trait: "Balanced", description: "Plays hands at their strength" },
+    stubborn: { name: "Sam", trait: "Stubborn", description: "Rarely folds and calls a lot" },
+    tricky: { name: "Max", trait: "Tricky", description: "Bluffs even with weak hands" },
+  } satisfies Record<Persona, { name: string; trait: string; description: string }>,
 
   cards: {
     suitNames: { s: "Spades", h: "Hearts", d: "Diamonds", c: "Clubs" } satisfies Record<Suit, string>,
@@ -351,6 +360,12 @@ export const en: Dictionary = {
       `Both players had ${hand}. ${sameRanks ? "The ranks that make the hand were tied, so compare" : "Compare"} ${meaning}: ${a} beats ${b}, so ${mid(winner)} won.`,
     foldWinYou: (amount: number) => `Everyone else folded, so you won the ${n(amount)} pot without showing your cards.`,
     foldWin: (name: string, amount: number) => `Everyone else folded, so ${mid(name)} won the ${n(amount)} pot without showing their cards.`,
+    whatIf: (yourHand: string, name: string, theirHand: string, outcome: "win" | "lose" | "tie") =>
+      outcome === "lose"
+        ? `If you had stayed in, your ${yourHand} would have lost to ${name}'s ${theirHand}. Folding was right.`
+        : outcome === "win"
+          ? `If you had stayed in, your ${yourHand} would have beaten ${name}'s ${theirHand}. Still, judge the decision by the odds at the time, not by the result.`
+          : `If you had stayed in, your ${yourHand} and ${name}'s ${theirHand} would have tied.`,
     youLostBets: (amount: number) => `You folded, so the ${n(amount)} chips you put in are lost.`,
     sidePot: (i: number, amount: number, names: string) =>
       `Side pot ${i} (${n(amount)}) was contested only by players who bet more than the all-in player. ${names} won it.`,
@@ -543,6 +558,31 @@ export const en: Dictionary = {
         ],
       },
     ],
+  },
+
+  practice: {
+    title: "Practice",
+    lead: "You get one spot at a time. Choose what you would do, and you get the same reasoning the in-game suggestions use. 8 questions, a few minutes.",
+    start: "Start",
+    counter: (current: number, total: number) => `Question ${current} of ${total}`,
+    prompt: "What would you do?",
+    grades: { correct: "Correct", close: "Close", wrong: "Not quite" },
+    answerWas: (label: string) => `The suggested action was "${label}"`,
+    yourAnswer: (label: string) => `Your answer: "${label}"`,
+    next: "Next question",
+    finish: "See results",
+    resultTitle: "Practice results",
+    score: (correct: number, total: number) => `${correct} of ${total} correct`,
+    closeCount: (count: number) => `Close: ${count}`,
+    comment: (rate: number) =>
+      rate >= 0.8
+        ? "Nicely done. Use the same reasoning in a real game."
+        : rate >= 0.5
+          ? "Good going. Keep comparing the equity you need to call with your chance of winning."
+          : "Try reviewing the rules and hand rankings, then give it another go.",
+    again: "Try again",
+    toGame: "Play Beginner mode",
+    tableNote: "It's your turn. What the others did is shown on the table.",
   },
 
   notFound: {

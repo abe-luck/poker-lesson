@@ -109,6 +109,9 @@ export function TopScreen() {
               <Link href={href("/play")} className={buttonClass("primary", "lg", "px-9")}>
                 {t.top.start}
               </Link>
+              <Link href={href("/practice")} className={buttonClass("secondary", "lg", "px-7")}>
+                {t.practice.title}
+              </Link>
               <ResumeButton />
             </div>
           </div>

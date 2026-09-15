@@ -12,6 +12,7 @@ import type {
   LegalActions,
   LogEntry,
   Mode,
+  Persona,
   Player,
   Rng,
 } from "./types";
@@ -21,7 +22,7 @@ export const MAX_PLAYERS = 6;
 
 export type NewGameOptions = {
   mode: Mode;
-  players: { id: string; name: string; isHuman: boolean; cpuLevel?: CpuLevel }[];
+  players: { id: string; name: string; isHuman: boolean; cpuLevel?: CpuLevel; persona?: Persona }[];
   startingStack: number;
   blinds: Blinds;
   /** 最初のハンドのディーラー位置 (省略時 0) */

@@ -1,4 +1,4 @@
-import type { HandCategory, LogEntry, Mode, Street, Suit } from "@/engine/types";
+import type { HandCategory, LogEntry, Mode, Persona, Street, Suit } from "@/engine/types";
 
 /** 数字の区切り (例: 1,000) */
 const n = (value: number) => value.toLocaleString("ja-JP");
@@ -19,6 +19,7 @@ export const ja = {
       setup: "ゲーム設定",
       game: "ゲーム",
       tutorial: "チュートリアル",
+      practice: "練習問題",
       rules: "ルール説明",
       hands: "役一覧",
       stats: "成績",
@@ -52,6 +53,15 @@ export const ja = {
     list: (items: string[]) => items.join(" と "),
     languageSwitch: { label: "English", href: "/en" },
   },
+
+  /** CPU の名前と性格 */
+  personas: {
+    cautious: { name: "タナカ", trait: "慎重", description: "弱い手ではすぐに降ります" },
+    aggressive: { name: "サトウ", trait: "強気", description: "よくベットやレイズをします" },
+    balanced: { name: "スズキ", trait: "バランス", description: "手の強さどおりに打ちます" },
+    stubborn: { name: "ヤマダ", trait: "粘り強い", description: "なかなか降りず、よくコールします" },
+    tricky: { name: "コバヤシ", trait: "ブラフ好き", description: "弱い手でも仕掛けてきます" },
+  } satisfies Record<Persona, { name: string; trait: string; description: string }>,
 
   cards: {
     suitNames: { s: "スペード", h: "ハート", d: "ダイヤ", c: "クラブ" } satisfies Record<Suit, string>,
@@ -336,6 +346,12 @@ export const ja = {
       `どちらも${hand}でした。${sameRanks ? "役の数字も同じなので、" : ""}${meaning}で比べると、${a} と ${b} で ${a} の方が強いので、${winner} の勝ちです。`,
     foldWinYou: (amount: number) => `ほかの全員がフォールドしたので、あなたが手札を見せずにポット ${n(amount)} を獲得しました。`,
     foldWin: (name: string, amount: number) => `ほかの全員がフォールドしたので、${name} が手札を見せずにポット ${n(amount)} を獲得しました。`,
+    whatIf: (yourHand: string, name: string, theirHand: string, outcome: "win" | "lose" | "tie") =>
+      outcome === "lose"
+        ? `もし降りずに最後まで残っていたら、あなたの${yourHand}は ${name} の${theirHand}に負けていました。降りて正解です。`
+        : outcome === "win"
+          ? `もし降りずに最後まで残っていたら、あなたの${yourHand}が ${name} の${theirHand}に勝っていました。ただし、結果ではなく、そのときの見込みで判断することが大切です。`
+          : `もし降りずに最後まで残っていたら、あなたの${yourHand}と ${name} の${theirHand}で引き分けでした。`,
     youLostBets: (amount: number) => `あなたは途中で降りたため、出したチップ（${n(amount)}）は戻りません。`,
     sidePot: (i: number, amount: number, names: string) =>
       `サイドポット${i}（${n(amount)}）は、オールインした人より多く賭けた人どうしで争い、${names} が獲得しました。`,
@@ -528,6 +544,31 @@ export const ja = {
         ],
       },
     ],
+  },
+
+  practice: {
+    title: "練習問題",
+    lead: "1問ずつ場面が出ます。「自分ならどうするか」を選ぶと、おすすめと同じ考え方で解説します。1回 8 問、数分で終わります。",
+    start: "はじめる",
+    counter: (current: number, total: number) => `第 ${current} 問 / 全 ${total} 問`,
+    prompt: "あなたならどうしますか？",
+    grades: { correct: "正解", close: "惜しい", wrong: "考え直してみましょう" },
+    answerWas: (label: string) => `おすすめは「${label}」でした`,
+    yourAnswer: (label: string) => `あなたの答え: 「${label}」`,
+    next: "次の問題",
+    finish: "結果を見る",
+    resultTitle: "練習の結果",
+    score: (correct: number, total: number) => `${total} 問中 ${correct} 問 正解`,
+    closeCount: (count: number) => `惜しい: ${count} 問`,
+    comment: (rate: number): string =>
+      rate >= 0.8
+        ? "よくできました。実際のゲームでも同じ考え方で判断してみましょう。"
+        : rate >= 0.5
+          ? "いい調子です。「コールに必要な勝率」と「勝てる見込み」を比べる練習を続けましょう。"
+          : "まずはルール説明と役一覧を見直してから、もう一度ためしてみましょう。",
+    again: "もう一度",
+    toGame: "初心者モードで遊ぶ",
+    tableNote: "あなたの番です。相手の行動はテーブルに出ています。",
   },
 
   notFound: {

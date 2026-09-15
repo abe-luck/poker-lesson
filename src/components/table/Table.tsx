@@ -74,9 +74,14 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-1.5">
-            <span className="truncate text-[13px] font-bold md:text-sm">{player.name}</span>
+            <span className="truncate text-[13px] font-bold md:text-sm">{playerName(t, player)}</span>
             {state.dealerIndex === index && <DealerBadge />}
           </div>
+          {player.persona && (
+            <span className="truncate text-[11px] text-muted" title={t.personas[player.persona].description}>
+              {t.personas[player.persona].trait}
+            </span>
+          )}
           <span className="text-[13px] text-muted tabular-nums md:text-sm">{t.formatChips(player.stack)}</span>
         </div>
         {info.reveal ? (

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { decideCpuAction } from "@/ai/cpu";
+import { pickPersonas } from "@/ai/personas";
 import { safeStorage } from "@/lib/storage";
 import { useStatsStore } from "./statsStore";
 import { cryptoRng } from "@/engine/cards";
@@ -63,6 +64,8 @@ function normalize(config: GameConfig): GameConfig {
 
 function newGameState(config: GameConfig): GameState {
   const cpuLevel: CpuLevel = config.mode === "beginner" ? "easy" : config.cpuLevel;
+  // CPU ごとに違う性格 (打ち方のくせ) を割り当てる
+  const personas = pickPersonas(config.cpuCount, cryptoRng);
   const players = [
     { id: HUMAN_ID, name: "あなた", isHuman: true },
     ...Array.from({ length: config.cpuCount }, (_, i) => ({
@@ -70,6 +73,7 @@ function newGameState(config: GameConfig): GameState {
       name: `CPU${i + 1}`,
       isHuman: false,
       cpuLevel,
+      persona: personas[i],
     })),
   ];
   const game = createGame({

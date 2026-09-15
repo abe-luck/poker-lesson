@@ -36,7 +36,8 @@ export function handName(t: Dictionary, hand: Pick<HandRank, "category" | "tiebr
   return t.hands.name(hand.category, r(0), r(1));
 }
 
-/** 画面に出す名前。人間のプレイヤーは言語に合わせて「あなた」/ "You" */
-export function playerName(t: Dictionary, player: Pick<Player, "isHuman" | "name">): string {
-  return player.isHuman ? t.common.you : player.name;
+/** 画面に出す名前。人間は「あなた」/ "You"、CPU は性格ごとの名前 */
+export function playerName(t: Dictionary, player: Pick<Player, "isHuman" | "name" | "persona">): string {
+  if (player.isHuman) return t.common.you;
+  return player.persona ? t.personas[player.persona].name : player.name;
 }

@@ -69,13 +69,40 @@ export type Recommendation = {
 
 const percent = (v: number) => Math.round(v * 100);
 
-export function recommend(t: Dictionary, state: GameState, equity: number): Recommendation | null {
+export type Decision = {
+  action: Recommendation["action"];
+  /** コールに必要な勝率 (チェックできる場面では null) */
+  need: number | null;
+  /** 「強い」とみなす勝率の基準 */
+  strongLine: number;
+  opponents: number;
+};
+
+/** おすすめの判断だけを出す (文章なし)。練習問題の答え合わせにも使う */
+export function decideRecommendation(state: GameState, equity: number): Decision | null {
   const player = getPlayerToAct(state);
   const legal = getLegalActions(state);
   if (!player?.isHuman || !legal) return null;
 
   const opponents = countOpponents(state, player.id);
   // 相手が多いほど、平均的な勝率は下がるので「強い」の基準も下げる
+  const strongLine = Math.min(0.65, Math.max(0.35, 1.8 / (opponents + 1)));
+  const call = legal.call ?? 0;
+  const need = legal.check ? null : call / (getPotTotal(state) + call);
+
+  if (equity >= strongLine && (legal.bet || legal.raise)) {
+    return { action: legal.bet ? "bet" : "raise", need, strongLine, opponents };
+  }
+  if (legal.check) return { action: "check", need, strongLine, opponents };
+  return { action: equity >= (need ?? 0) ? "call" : "fold", need, strongLine, opponents };
+}
+
+export function recommend(t: Dictionary, state: GameState, equity: number): Recommendation | null {
+  const player = getPlayerToAct(state);
+  const legal = getLegalActions(state);
+  if (!player?.isHuman || !legal) return null;
+
+  const opponents = countOpponents(state, player.id);
   const strongLine = Math.min(0.65, Math.max(0.35, 1.8 / (opponents + 1)));
   const hand = currentHand(t, player, state.board)?.name ?? t.explain.currentHandFallback;
   const chance = t.explain.chance(percent(equity));
@@ -135,7 +162,7 @@ export function explainSituation(t: Dictionary, state: GameState, playerId: stri
 
   const toAct = getPlayerToAct(state);
   if (toAct && !toAct.isHuman) {
-    lines.push(t.explain.cpuThinking(toAct.name));
+    lines.push(t.explain.cpuThinking(playerName(t, toAct)));
   } else if (toAct?.isHuman) {
     const legal = getLegalActions(state);
     lines.push(legal?.check ? t.explain.yourTurnCheck : t.explain.yourTurnCall(legal?.call ?? 0));
@@ -208,7 +235,27 @@ export type HandReview = {
 export function resultTitle(t: Dictionary, state: GameState, winnerIds: string[]): string {
   const winners = winnerIds.map((id) => state.players.find((p) => p.id === id)!);
   if (winners.length > 1) return t.result.tie(t.common.list(winners.map((w) => playerName(t, w))));
-  return winners[0].isHuman ? t.result.youWin : t.result.wins(winners[0].name);
+  return winners[0].isHuman ? t.result.youWin : t.result.wins(playerName(t, winners[0]));
+}
+
+/**
+ * 降りたあと「最後まで残っていたらどうなっていたか」。
+ * 場のカードが5枚そろい、ショーダウンがあった場合だけ調べる
+ */
+export function foldWhatIf(t: Dictionary, state: GameState, me: Player): string | null {
+  const showdown = state.result?.showdown ?? [];
+  if (me.status !== "folded" || me.holeCards.length < 2 || state.board.length < 5 || showdown.length === 0) return null;
+
+  const mine = evaluateBest([...me.holeCards, ...state.board]);
+  const best = showdown.reduce((a, b) => (compareHands(a.hand, b.hand) >= 0 ? a : b));
+  const bestPlayer = state.players.find((p) => p.id === best.playerId)!;
+  const diff = compareHands(mine, best.hand);
+  return t.explain.whatIf(
+    handName(t, mine),
+    playerName(t, bestPlayer),
+    handName(t, best.hand),
+    diff > 0 ? "win" : diff < 0 ? "lose" : "tie",
+  );
 }
 
 export function reviewHand(t: Dictionary, state: GameState, playerId: string): HandReview | null {
@@ -249,7 +296,11 @@ export function reviewHand(t: Dictionary, state: GameState, playerId: string): H
     lines.push(t.explain.sidePot(i + 1, pot.amount, t.common.list(pot.winnerIds.map(nameOf))));
   });
 
-  if (me.status === "folded") lines.push(t.explain.youLostBets(me.totalBet));
+  if (me.status === "folded") {
+    lines.push(t.explain.youLostBets(me.totalBet));
+    const whatIf = foldWhatIf(t, state, me);
+    if (whatIf) lines.push(whatIf);
+  }
 
   const showdown = result.showdown
     .map((s) => ({ player: playerOf(s.playerId), hand: s.hand, won: result.payouts.some((p) => p.playerId === s.playerId) }))

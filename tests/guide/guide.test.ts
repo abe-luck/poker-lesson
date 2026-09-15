@@ -175,3 +175,23 @@ describe("英語の文章 (あなたが勝った場合)", () => {
     );
   });
 });
+
+describe("降りたあとの「もし残っていたら」", () => {
+  // ディーラー P0 (人間)。配る順 P1, P2, P0。あなたはプリフロップで降りる
+  const play = () => {
+    const deck = riggedDeck(["2c 3d", "Ks 7c", "Ah Ad"], "As Kh 7d 2s 9h");
+    let s = startHand(newGame(3), { deck });
+    s = act(s, { type: "fold" }, { type: "call" }, { type: "check" });
+    return act(s, ...Array.from({ length: 6 }, () => ({ type: "check" as const })));
+  };
+
+  it("降りなければ勝てていた場合", () => {
+    const review = reviewHand(t, play(), "P0")!;
+    expect(review.lines.at(-1)).toContain("スリーカード（A）が P2 のツーペア（Kと7）に勝っていました");
+  });
+
+  it("ショーダウンがなければ出さない", () => {
+    const s = act(startHand(newGame(3), { rng: seededRng(1) }), { type: "fold" }, { type: "fold" });
+    expect(reviewHand(t, s, "P0")!.lines.join("")).not.toContain("もし降りずに");
+  });
+});

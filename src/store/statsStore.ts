@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { cardToString } from "@/engine/cards";
-import type { GameState, HandCategory, LogEntry, Mode } from "@/engine/types";
+import type { GameState, HandCategory, LogEntry, Mode, Persona } from "@/engine/types";
 import { safeStorage } from "@/lib/storage";
 
 export const STATS_KEY = "poker.stats.v1";
@@ -21,7 +21,7 @@ export type ModeStats = {
   biggestWin: number;
 };
 
-type HistoryPlayer = { id: string; name: string; isHuman: boolean };
+type HistoryPlayer = { id: string; name: string; isHuman: boolean; persona?: Persona };
 
 /** 履歴は表示する言語が変わっても訳せるように、文章ではなくデータで保存する */
 export type HistoryEntry = {
@@ -59,7 +59,7 @@ export function summarizeHand(state: GameState, now = Date.now()): { delta: Mode
   const showdown = state.result.showdown.find((s) => s.playerId === human.id);
   const playerOf = (id: string): HistoryPlayer => {
     const p = state.players.find((x) => x.id === id)!;
-    return { id: p.id, name: p.name, isHuman: p.isHuman };
+    return { id: p.id, name: p.name, isHuman: p.isHuman, persona: p.persona };
   };
 
   return {

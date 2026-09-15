@@ -23,8 +23,8 @@ test("一度開いたあとは、オフラインでもページを開いてゲ�
     return registration.active?.state;
   });
   await expect
-    .poll(() => page.evaluate(async () => (await caches.open("pages-v2")).keys().then((k) => k.length)), { timeout: 20_000 })
-    .toBeGreaterThanOrEqual(18);
+    .poll(() => page.evaluate(async () => (await caches.open("pages-v3")).keys().then((k) => k.length)), { timeout: 20_000 })
+    .toBeGreaterThanOrEqual(20);
 
   await context.setOffline(true);
 

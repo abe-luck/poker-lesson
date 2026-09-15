@@ -9,6 +9,8 @@ export type Rng = () => number;
 export type Street = "preflop" | "flop" | "turn" | "river" | "showdown";
 export type Mode = "beginner" | "pro";
 export type CpuLevel = "easy" | "normal" | "hard";
+/** CPUの性格 (打ち方のくせ)。名前と説明は i18n の personas */
+export type Persona = "cautious" | "aggressive" | "balanced" | "stubborn" | "tricky";
 
 export type ActionType = "fold" | "check" | "call" | "bet" | "raise" | "allin";
 /** bet / raise の amount は「このストリートで出す合計額」 */
@@ -21,6 +23,7 @@ export type Player = {
   name: string;
   isHuman: boolean;
   cpuLevel?: CpuLevel;
+  persona?: Persona;
   stack: number;
   holeCards: Card[];
   /** このストリートで出した額 */
