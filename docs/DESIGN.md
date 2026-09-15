@@ -159,7 +159,7 @@ flowchart LR
 - 色だけに頼らず、必ずマーク (♠♥♦♣) も表示する
 
 ### 5.4 文字・動き
-- フォント: Noto Sans JP (Google Fonts)。数字は桁がそろう表示 (tabular-nums)
+- フォント: 端末に入っている日本語フォント (iPhone/Mac はヒラギノ、Android は Noto Sans CJK、Windows は Yu Gothic UI)。Web フォントは読み込まない (Lighthouse の計測で表示開始が 3.8 秒 → 0.8 秒に改善したため)。数字は桁がそろう表示 (tabular-nums)
 - アニメーションは短く (150〜250ms)、カードを配る・めくる・チップが動くの3種類だけ
 - OSの「視差効果を減らす」設定がONなら、アニメーションを止める
 

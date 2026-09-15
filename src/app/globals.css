@@ -20,7 +20,8 @@
   --line: #d9d9d4;
   --chip: #eef0f2;
   --track: #d5d8dc;
-  --accent: #2f6feb;
+  --accent: #2563d8;
+  --on-accent: #ffffff;
   --accent-soft: #eef3fd;
   --danger: #b4443c;
   /* カードの色 (4色デッキ時に ◆ と ♣ を変える) */
@@ -43,9 +44,10 @@
   --line: #41464e;
   --chip: #2d3137;
   --track: #454a52;
-  --accent: #5b8def;
+  --accent: #6d9af1;
+  --on-accent: #0f1830;
   --accent-soft: #1f2a3d;
-  --danger: #d46a62;
+  --danger: #e27d75;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,9 +63,10 @@
     --line: #41464e;
     --chip: #2d3137;
     --track: #454a52;
-    --accent: #5b8def;
+    --accent: #6d9af1;
+    --on-accent: #0f1830;
     --accent-soft: #1f2a3d;
-    --danger: #d46a62;
+    --danger: #e27d75;
   }
 }
 
@@ -84,9 +87,11 @@
   --color-chip: var(--chip);
   --color-track: var(--track);
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
-  --font-sans: var(--font-noto-sans-jp), "Hiragino Sans", "Yu Gothic", sans-serif;
+  /* 端末に入っている日本語フォントを使う (Web フォントを読み込まず表示を速くする) */
+  --font-sans: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", Meiryo, sans-serif;
 }
 
 body {

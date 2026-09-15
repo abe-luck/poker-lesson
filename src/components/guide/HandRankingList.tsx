@@ -32,9 +32,7 @@ export function HandRankingList() {
             </div>
             <div className="flex gap-1 pl-9 sm:pl-0">
               {parseCards(r.example).map((card, j) => (
-                <div key={j} className={j < r.keyCount ? "" : "opacity-45"}>
-                  <PlayingCard card={card} size="sm" />
-                </div>
+                <PlayingCard key={j} card={card} size="sm" highlight={j < r.keyCount && r.keyCount < 5} />
               ))}
             </div>
           </li>
@@ -45,7 +43,7 @@ export function HandRankingList() {
         <li>数字は A が一番強く、K・Q・J・10…と続き、2 が一番弱くなります。</li>
         <li>A-2-3-4-5 もストレートです（この場合は 5 が一番上として扱います）。</li>
         <li>同じ役どうしは、役を作る数字 → 残りのカード（キッカー）の順に比べます。マークに強さはありません。</li>
-        <li>役を作らないカードは薄く表示しています。</li>
+        <li>青い枠のカードが役を作っている部分です（5枚すべてで作る役には枠を付けていません）。</li>
       </ul>
     </div>
   );

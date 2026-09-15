@@ -5,10 +5,10 @@ import { getPotTotal } from "@/engine/game";
 import type { GameState, HandRank, Player } from "@/engine/types";
 import { StrengthMeter } from "@/components/guide/StrengthMeter";
 import type { Guide } from "@/components/guide/useGuide";
+import { CardBack, CardSlot, PlayingCard } from "./PlayingCard";
 
 /** 自分の今の役と強さ (初心者モード、またはプロモードで表示をオンにしたとき) */
 export type HandInfo = Pick<Guide, "hand" | "strength">;
-import { CardBack, CardSlot, PlayingCard } from "./PlayingCard";
 
 /** PC 表示での CPU 席の位置 (テーブル領域に対する %)。左 → 上 → 右 の時計回り */
 const SEAT_POSITIONS: Record<number, [number, number][]> = {
@@ -187,7 +187,7 @@ function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) 
           );
         })}
       </div>
-      <div className="text-[13px] text-white/70">{STREET_NAMES[state.street]}</div>
+      <div className="text-[13px] text-white/85">{STREET_NAMES[state.street]}</div>
     </div>
   );
 }

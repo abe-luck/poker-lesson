@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
 import { SettingsHydrator } from "@/components/SettingsHydrator";
 import { SETTINGS_KEY } from "@/store/settingsStore";
 import "./globals.css";
-
-// 日本語フォントはファイルが大きいため preload しない
-const notoSansJp = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
-  subsets: ["latin"],
-  preload: false,
-});
 
 export const metadata: Metadata = {
   title: "Poker Lesson",
@@ -22,7 +14,7 @@ const applySavedSettings = `try{var s=JSON.parse(localStorage.getItem(${JSON.str
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ja" className={`${notoSansJp.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="ja" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: applySavedSettings }} />
       </head>

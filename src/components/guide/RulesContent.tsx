@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3">
-      <h3 className="text-base font-bold">{title}</h3>
+      <h2 className="text-base font-bold">{title}</h2>
       <div className="flex flex-col gap-3 text-[15px] leading-[1.8] text-pretty">{children}</div>
     </section>
   );
@@ -53,7 +53,7 @@ export function RulesContent() {
                 <span className="text-sm font-bold">{s.name}</span>
                 <span className="text-[13px] text-muted">{s.text}</span>
               </div>
-              <div className="flex gap-0.5" aria-label={`場のカード ${s.cards} 枚`}>
+              <div className="flex gap-0.5" role="img" aria-label={`場のカード ${s.cards} 枚`}>
                 {Array.from({ length: 5 }, (_, j) => (
                   <span key={j} className={`h-5 w-3.5 rounded-[3px] ${j < s.cards ? "bg-felt" : "border border-dashed border-line"}`} />
                 ))}
