@@ -11,9 +11,10 @@ type Props = {
   onNext: () => void;
   onRebuy: () => void;
   onRestart: () => void;
+  tournament?: boolean;
 };
 
-export function HandResultBar({ state, onNext, onRebuy, onRestart }: Props) {
+export function HandResultBar({ state, onNext, onRebuy, onRestart, tournament = false }: Props) {
   const result = state.result;
   if (!result) return null;
 
@@ -43,6 +44,15 @@ export function HandResultBar({ state, onNext, onRebuy, onRestart }: Props) {
 
   const over = isGameOver(state);
   const humanBusted = human.stack === 0;
+  // 同じハンドで複数人が脱落した場合も、残った人数 + 1 位とする
+  const place = state.players.filter((p) => p.stack > 0).length + 1;
+  const gameOverMessage = humanBusted
+    ? tournament
+      ? `${place}位で終了しました`
+      : "チップがなくなりました"
+    : tournament
+      ? "優勝しました！"
+      : "全員に勝ちました！";
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
@@ -68,8 +78,8 @@ export function HandResultBar({ state, onNext, onRebuy, onRestart }: Props) {
           </Button>
         )}
         {over && (humanBusted ? state.mode === "pro" : true) && (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-bold">{humanBusted ? "チップがなくなりました" : "全員に勝ちました！"}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-bold">{gameOverMessage}</span>
             <Button variant="primary" size="lg" onClick={onRestart} autoFocus>
               もう一度遊ぶ
             </Button>

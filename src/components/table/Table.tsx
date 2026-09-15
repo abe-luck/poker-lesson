@@ -61,7 +61,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
       style={style}
       className={`flex flex-col gap-1.5 rounded-xl border bg-surface px-2.5 py-2 shadow-[0_2px_8px_rgba(0,0,0,.06)] transition md:absolute md:z-10 md:left-(--x) md:top-(--y) md:w-[168px] md:-translate-x-1/2 md:-translate-y-1/2 md:px-3 md:py-2.5 ${
         toAct ? "border-accent ring-2 ring-accent/25" : info.payout > 0 ? "border-felt ring-2 ring-felt/25" : "border-border"
-      } ${inactive ? "opacity-55" : ""}`}
+      } ${inactive ? "[&>*]:opacity-55" : ""}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex min-w-0 flex-col">

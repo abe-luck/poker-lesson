@@ -30,17 +30,33 @@ describe("手の強さ", () => {
 });
 
 describe("decideCpuAction", () => {
-  it("どんな状況でも実行できる行動を返す", () => {
+  it.each(["easy", "normal", "hard"] as const)("%s: どんな状況でも実行できる行動を返す", (level) => {
     const rng = seededRng(7);
     let s = newGame(6);
-    for (let hand = 0; hand < 150; hand++) {
+    s = { ...s, players: s.players.map((p) => ({ ...p, cpuLevel: level })) };
+    for (let hand = 0; hand < 120; hand++) {
       for (const p of s.players) if (p.stack === 0) s = rebuy(s, p.id, 1000);
       s = startHand(s, { rng });
       while (!s.isHandOver) {
-        s = applyAction(s, decideCpuAction(s, rng)); // 不正な行動なら例外になる
+        s = applyAction(s, decideCpuAction(s, { rng, iterations: 20 })); // 不正な行動なら例外になる
       }
     }
-    expect(s.handNumber).toBe(150);
+    expect(s.handNumber).toBe(120);
+  });
+
+  it("ふつう以上のCPUは、強い手でフォールドせず、弱い手で大きなベットにはコールしない", () => {
+    // ヘッズアップ: P0 (ディーラー/SB) が 500 にレイズ → P1 (BB) の判断
+    const decide = (hole: string) => {
+      const deck = [...parseCards(`${hole.split(" ")[0]} 2c ${hole.split(" ")[1]} 3d`)];
+      let s = newGame(2);
+      s = { ...s, players: s.players.map((p) => ({ ...p, cpuLevel: "normal" as const })) };
+      s = startHand(s, { deck: [...deck, ...parseCards("4h 5s 6d 8c 9h Th Jd")] });
+      // 配る順は P1, P0。P1 の手札が hole になるよう組んである
+      s = applyAction(s, { type: "raise", amount: 500 });
+      return decideCpuAction(s, { rng: seededRng(1), iterations: 400 }).type;
+    };
+    expect(["call", "raise", "allin"]).toContain(decide("As Ah"));
+    expect(decide("7c 2d")).toBe("fold");
   });
 });
 

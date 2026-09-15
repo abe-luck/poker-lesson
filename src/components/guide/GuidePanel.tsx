@@ -3,6 +3,7 @@
 import { STREET_NAMES } from "@/content/ja";
 import type { GameState } from "@/engine/types";
 import { useSettingsStore } from "@/store/settingsStore";
+import { Switch } from "@/components/ui/Switch";
 import type { Guide } from "./useGuide";
 
 const STAGE: Record<GameState["street"], number> = { preflop: 1, flop: 2, turn: 3, river: 4, showdown: 5 };
@@ -14,20 +15,12 @@ type Props = {
   onOpenRules: () => void;
 };
 
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+function LabeledSwitch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
-      <span>{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-[26px] w-11 shrink-0 rounded-full transition ${checked ? "bg-accent" : "bg-[#d5d8dc]"}`}
-      >
-        <span className={`absolute top-[3px] size-5 rounded-full bg-white transition-all ${checked ? "left-[21px]" : "left-[3px]"}`} />
-      </button>
-    </label>
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span aria-hidden>{label}</span>
+      <Switch label={label} checked={checked} onChange={onChange} />
+    </div>
   );
 }
 
@@ -94,7 +87,7 @@ function PanelBody({ state, guide, onOpenHands, onOpenRules }: Props) {
       )}
 
       {showRecommendation && <RecommendationBox guide={guide} />}
-      <Switch label="おすすめを表示" checked={showRecommendation} onChange={setShowRecommendation} />
+      <LabeledSwitch label="おすすめを表示" checked={showRecommendation} onChange={setShowRecommendation} />
 
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onOpenHands} className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#d9d9d4] text-sm hover:bg-background">

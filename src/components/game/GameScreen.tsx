@@ -15,23 +15,27 @@ import { Table } from "@/components/table/Table";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { buttonClass } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
+import { blindLevel, handsUntilNextLevel } from "@/engine/tournament";
+import { HandLog, HandLogSidePanel } from "./HandLogPanel";
 import { HandResultBar } from "./HandResultBar";
 import { HandReviewDialog } from "./HandReviewDialog";
+import { useTurnTimer } from "./useTurnTimer";
 
 /** CPU が行動するまでの間 (ms) */
 const CPU_DELAY = { beginner: 1100, pro: 600 } as const;
 
-type Reference = "guide" | "hands" | "rules" | null;
+type Reference = "guide" | "hands" | "rules" | "log" | null;
 
 export function GameScreen() {
   const game = useGameStore((s) => s.game);
-  const { act, cpuAct, nextHand, rebuyHuman, restart, quit } = useGameStore.getState();
+  const config = useGameStore((s) => s.config);
+  const { act, cpuAct, nextHand, rebuyHuman, restart, quit, timeout } = useGameStore.getState();
   const guide = useGuide(game);
   const [reference, setReference] = useState<Reference>(null);
   const [closedReviewHand, setClosedReviewHand] = useState(0);
 
   const toAct = game ? getPlayerToAct(game) : null;
-  // 役一覧などを開いている間は CPU を待たせる
+  // 役一覧などを開いている間は CPU と持ち時間を止める
   const paused = reference !== null;
 
   useEffect(() => {
@@ -39,6 +43,13 @@ export function GameScreen() {
     const timer = setTimeout(cpuAct, CPU_DELAY[game.mode]);
     return () => clearTimeout(timer);
   }, [game, toAct, cpuAct, paused]);
+
+  const remaining = useTurnTimer({
+    seconds: game?.mode === "pro" ? (config?.timeLimit ?? 0) : 0,
+    turnKey: game && toAct?.isHuman ? `${game.handNumber}-${game.log.length}` : null,
+    paused,
+    onExpire: timeout,
+  });
 
   if (!game) {
     return (
@@ -76,6 +87,9 @@ export function GameScreen() {
   };
   const openHands = () => setReference("hands");
   const openRules = () => setReference("rules");
+  const tournament = config?.format === "tournament";
+  const levelLeft = tournament ? handsUntilNextLevel(game.handNumber) : null;
+  const headerButton = "rounded-lg px-2.5 py-2 text-sm text-muted hover:bg-background hover:text-foreground";
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -83,11 +97,16 @@ export function GameScreen() {
         compact
         back={{ href: "/", label: "やめる", onClick: quit }}
         right={
-          <div className="flex gap-1">
-            <button type="button" onClick={openHands} className="rounded-lg px-2.5 py-2 text-sm text-muted hover:bg-background hover:text-foreground">
+          <div className="flex shrink-0 gap-1">
+            {!beginner && (
+              <button type="button" onClick={() => setReference("log")} className={`${headerButton} xl:hidden`}>
+                流れ
+              </button>
+            )}
+            <button type="button" onClick={openHands} className={headerButton}>
               役一覧
             </button>
-            <button type="button" onClick={openRules} className="hidden rounded-lg px-2.5 py-2 text-sm text-muted hover:bg-background hover:text-foreground sm:block">
+            <button type="button" onClick={openRules} className={`${headerButton} hidden sm:block`}>
               ルール
             </button>
           </div>
@@ -98,7 +117,18 @@ export function GameScreen() {
         >
           {MODE_NAMES[game.mode]}
         </span>
-        <span className="hidden text-muted sm:inline">
+        {tournament && (
+          <span className="hidden shrink-0 text-muted md:inline">
+            トーナメント{" "}
+            <span className="font-medium text-foreground tabular-nums">レベル {blindLevel(game.handNumber - 1) + 1}</span>
+            {levelLeft !== null && (
+              <span className="ml-3">
+                次のレベルまで <span className="font-medium text-foreground tabular-nums">{levelLeft}</span> ハンド
+              </span>
+            )}
+          </span>
+        )}
+        <span className="hidden shrink-0 text-muted sm:inline">
           ハンド <span className="font-medium text-foreground tabular-nums">#{game.handNumber}</span>
         </span>
         <span className="truncate text-muted">
@@ -123,9 +153,17 @@ export function GameScreen() {
             <div className="mx-auto flex max-w-[1080px] flex-col gap-3">
               {guide && !game.isHandOver && <GuideSummaryButton state={game} guide={guide} onOpen={() => setReference("guide")} />}
               {game.isHandOver ? (
-                <HandResultBar state={game} onNext={goNext} onRebuy={rebuyHuman} onRestart={restart} />
+                <HandResultBar state={game} onNext={goNext} onRebuy={rebuyHuman} onRestart={restart} tournament={tournament} />
               ) : legal ? (
-                <ActionBar key={`${game.handNumber}-${game.log.length}`} state={game} legal={legal} onAct={act} foldWarning={foldWarning} />
+                <ActionBar
+                  key={`${game.handNumber}-${game.log.length}`}
+                  state={game}
+                  legal={legal}
+                  onAct={act}
+                  foldWarning={foldWarning}
+                  showPotOdds={config?.showPotOdds}
+                  timer={remaining !== null && config ? { remaining, total: config.timeLimit } : null}
+                />
               ) : (
                 <div className="flex min-h-12 flex-col justify-center gap-0.5">
                   <span className="text-base font-bold">{toAct?.name} が考えています…</span>
@@ -137,7 +175,12 @@ export function GameScreen() {
         </div>
 
         {guide && <GuideSidePanel state={game} guide={guide} onOpenHands={openHands} onOpenRules={openRules} />}
+        {!beginner && <HandLogSidePanel state={game} />}
       </div>
+
+      <Dialog open={reference === "log"} title="このハンドの流れ" onClose={() => setReference(null)}>
+        <HandLog state={game} />
+      </Dialog>
 
       <HandReviewDialog
         state={game}

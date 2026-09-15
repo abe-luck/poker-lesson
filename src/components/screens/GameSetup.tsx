@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { formatChips, MODE_NAMES } from "@/content/ja";
-import { useGameStore } from "@/store/gameStore";
+import { HANDS_PER_LEVEL } from "@/engine/tournament";
+import { useGameStore, type GameConfig, type GameFormat, type TimeLimit } from "@/store/gameStore";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/Button";
+import { Switch } from "@/components/ui/Switch";
 
 const CPU_COUNTS = [1, 2, 3, 4, 5];
 const STACKS = [500, 1000, 2000];
@@ -69,6 +71,7 @@ export function GameSetup() {
   const router = useRouter();
   const draft = useGameStore((s) => s.draft);
   const { updateDraft, startGame } = useGameStore.getState();
+  const pro = draft.mode === "pro";
 
   const start = () => {
     startGame(draft);
@@ -93,7 +96,7 @@ export function GameSetup() {
           <Row label="最初のチップ">
             <Segmented label="最初のチップ" options={STACKS} value={draft.startingStack} format={formatChips} onChange={(startingStack) => updateDraft({ startingStack })} />
           </Row>
-          <Row label="ブラインド" sub="毎ハンド、2人が強制的に出すチップ">
+          <Row label={pro && draft.format === "tournament" ? "最初のブラインド" : "ブラインド"} sub="毎ハンド、2人が強制的に出すチップ">
             <Segmented
               label="ブラインド"
               options={BLINDS}
@@ -103,6 +106,51 @@ export function GameSetup() {
               onChange={(blinds) => updateDraft({ blinds })}
             />
           </Row>
+          {pro ? (
+            <>
+              <Row label="CPUの強さ">
+                <Segmented
+                  label="CPUの強さ"
+                  options={["normal", "hard"] as const satisfies GameConfig["cpuLevel"][]}
+                  value={draft.cpuLevel}
+                  format={(v) => (v === "normal" ? "ふつう" : "強い")}
+                  onChange={(cpuLevel) => updateDraft({ cpuLevel })}
+                />
+              </Row>
+              <Row
+                label="形式"
+                sub={
+                  draft.format === "tournament"
+                    ? `${HANDS_PER_LEVEL}ハンドごとにブラインドが上がり、最後の1人になれば優勝です`
+                    : "ブラインドは最後まで変わりません"
+                }
+              >
+                <Segmented
+                  label="形式"
+                  options={["cash", "tournament"] as const satisfies GameFormat[]}
+                  value={draft.format}
+                  format={(v) => (v === "cash" ? "キャッシュゲーム" : "トーナメント")}
+                  onChange={(format) => updateDraft({ format })}
+                />
+              </Row>
+              <Row label="持ち時間" sub="時間切れはチェック、できなければフォールド">
+                <Segmented
+                  label="持ち時間"
+                  options={[0, 15, 30] as const satisfies TimeLimit[]}
+                  value={draft.timeLimit}
+                  format={(v) => (v === 0 ? "なし" : `${v}秒`)}
+                  onChange={(timeLimit) => updateDraft({ timeLimit })}
+                />
+              </Row>
+              <Row label="ポットオッズを表示" sub="コールに必要な勝率を数字で表示します">
+                <Switch label="ポットオッズを表示" checked={draft.showPotOdds} onChange={(showPotOdds) => updateDraft({ showPotOdds })} />
+              </Row>
+            </>
+          ) : (
+            <Row label="CPUの強さ" sub="初心者モードでは「弱い」に固定されます">
+              <span className="text-[15px] text-muted">弱い</span>
+            </Row>
+          )}
         </div>
 
         <div className="flex justify-end gap-3">

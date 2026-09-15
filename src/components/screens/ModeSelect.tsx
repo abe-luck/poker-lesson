@@ -86,7 +86,7 @@ export function ModeSelect() {
           })}
         </div>
         <p className="text-center text-[13px] text-muted">
-          CPUの強さの選択、トーナメント、持ち時間などのプロモードの機能は順次追加していきます。
+          過去のハンド履歴と成績の記録は、今後追加します。
         </p>
       </main>
     </div>

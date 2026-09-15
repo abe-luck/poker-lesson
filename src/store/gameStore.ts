@@ -1,16 +1,26 @@
 import { create } from "zustand";
 import { decideCpuAction } from "@/ai/cpu";
 import { cryptoRng } from "@/engine/cards";
-import { applyAction, createGame, rebuy, startHand } from "@/engine/game";
-import type { Action, Blinds, GameState, Mode } from "@/engine/types";
+import { applyAction, createGame, getLegalActions, getPlayerToAct, rebuy, setBlinds, startHand } from "@/engine/game";
+import { blindLevel, blindsForLevel } from "@/engine/tournament";
+import type { Action, Blinds, CpuLevel, GameState, Mode } from "@/engine/types";
 
 export const HUMAN_ID = "you";
+
+export type GameFormat = "cash" | "tournament";
+export type TimeLimit = 0 | 15 | 30;
 
 export type GameConfig = {
   mode: Mode;
   cpuCount: number;
   startingStack: number;
   blinds: Blinds;
+  /** プロモードのみ。初心者モードは常に弱い */
+  cpuLevel: Exclude<CpuLevel, "easy">;
+  format: GameFormat;
+  /** 持ち時間 (秒)。0 はなし */
+  timeLimit: TimeLimit;
+  showPotOdds: boolean;
 };
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -18,6 +28,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   cpuCount: 3,
   startingStack: 1000,
   blinds: { small: 5, big: 10 },
+  cpuLevel: "normal",
+  format: "cash",
+  timeLimit: 0,
+  showPotOdds: true,
 };
 
 type GameStore = {
@@ -30,20 +44,28 @@ type GameStore = {
   startGame: (config: GameConfig) => void;
   restart: () => void;
   act: (action: Action) => void;
+  /** 持ち時間切れ: チェックできればチェック、できなければフォールド */
+  timeout: () => void;
   cpuAct: () => void;
   nextHand: () => void;
   rebuyHuman: () => void;
   quit: () => void;
 };
 
+/** 初心者モードでは使わない設定を既定値に戻す */
+function normalize(config: GameConfig): GameConfig {
+  return config.mode === "beginner" ? { ...config, format: "cash", timeLimit: 0 } : config;
+}
+
 function newGameState(config: GameConfig): GameState {
+  const cpuLevel: CpuLevel = config.mode === "beginner" ? "easy" : config.cpuLevel;
   const players = [
     { id: HUMAN_ID, name: "あなた", isHuman: true },
     ...Array.from({ length: config.cpuCount }, (_, i) => ({
       id: `cpu${i + 1}`,
       name: `CPU${i + 1}`,
       isHuman: false,
-      cpuLevel: "easy" as const,
+      cpuLevel,
     })),
   ];
   const game = createGame({
@@ -63,7 +85,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   updateDraft: (patch) => set((s) => ({ draft: { ...s.draft, ...patch } })),
 
-  startGame: (config) => set({ config, game: newGameState(config) }),
+  startGame: (draft) => {
+    const config = normalize(draft);
+    set({ config, game: newGameState(config) });
+  },
 
   restart: () => {
     const { config } = get();
@@ -72,8 +97,15 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   act: (action) => {
     const { game } = get();
-    if (!game || game.toActIndex === null || !game.players[game.toActIndex].isHuman) return;
+    if (!game || !getPlayerToAct(game)?.isHuman) return;
     set({ game: applyAction(game, action) });
+  },
+
+  timeout: () => {
+    const { game } = get();
+    if (!game || !getPlayerToAct(game)?.isHuman) return;
+    const legal = getLegalActions(game);
+    set({ game: applyAction(game, { type: legal?.check ? "check" : "fold" }) });
   },
 
   cpuAct: () => {
@@ -83,8 +115,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   nextHand: () => {
-    const { game } = get();
-    if (game?.isHandOver) set({ game: startHand(game) });
+    const { game, config } = get();
+    if (!game?.isHandOver || !config) return;
+    const next =
+      config.format === "tournament" ? setBlinds(game, blindsForLevel(config.blinds, blindLevel(game.handNumber))) : game;
+    set({ game: startHand(next) });
   },
 
   rebuyHuman: () => {

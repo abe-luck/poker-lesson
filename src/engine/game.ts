@@ -360,6 +360,12 @@ function showdown(state: GameState): GameState {
   );
 }
 
+/** ハンドの合間にブラインドを変える (トーナメント用) */
+export function setBlinds(prev: GameState, blinds: Blinds): GameState {
+  if (!prev.isHandOver) throw new Error("ハンドの途中ではブラインドを変えられません");
+  return { ...structuredClone(prev), blinds: { ...blinds }, minRaise: blinds.big };
+}
+
 /** ハンドの合間にチップを補充する (初心者モード用) */
 export function rebuy(prev: GameState, playerId: string, amount: number): GameState {
   if (!prev.isHandOver) throw new Error("ハンドの途中では補充できません");
