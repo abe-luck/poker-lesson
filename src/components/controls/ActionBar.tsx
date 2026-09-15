@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatChips } from "@/content/ja";
 import { getPotTotal } from "@/engine/game";
 import type { Action, GameState, LegalActions } from "@/engine/types";
@@ -49,6 +49,23 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
       ]
     : [];
 
+  // キーボード操作: F フォールド / C チェック・コール / R ベット・レイズ
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input:not([type=range]), textarea, [role=dialog]") || document.querySelector("[role=dialog]")) return;
+      const key = e.key.toLowerCase();
+      if (key === "f") fold();
+      else if (key === "c") onAct({ type: legal.check ? "check" : "call" });
+      else if (key === "r" && range) onAct({ type: kind, amount });
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const betLabel = kind === "bet" ? "ベット" : "レイズ";
   const isAllin = range !== null && amount === range.max;
   const requiredEquity = legal.call !== null ? Math.round((legal.call / (pot + legal.call)) * 100) : null;
@@ -76,18 +93,18 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <div className="flex flex-col gap-1">
-            <Button variant="danger" onClick={fold} className="sm:w-36">
+            <Button variant="danger" onClick={fold} className="sm:w-36" aria-keyshortcuts="F" title="フォールド (F)">
               フォールド
             </Button>
             <Caption show={beginner}>このハンドを降ります</Caption>
           </div>
           <div className="flex flex-col gap-1">
             {legal.check ? (
-              <Button variant="primary" onClick={() => onAct({ type: "check" })} className="sm:w-36">
+              <Button variant="primary" onClick={() => onAct({ type: "check" })} className="sm:w-36" aria-keyshortcuts="C" title="チェック (C)">
                 チェック
               </Button>
             ) : (
-              <Button variant="primary" onClick={() => onAct({ type: "call" })} className="sm:w-36">
+              <Button variant="primary" onClick={() => onAct({ type: "call" })} className="sm:w-36" aria-keyshortcuts="C" title="コール (C)">
                 {shortCall ? "オールイン" : "コール"} {formatChips(toCall)}
               </Button>
             )}
@@ -128,7 +145,7 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
                 }}
                 className="min-w-0 flex-1 accent-(--accent)"
               />
-              <Button variant="secondary" onClick={() => onAct({ type: kind, amount })} className="w-36 shrink-0">
+              <Button variant="secondary" onClick={() => onAct({ type: kind, amount })} className="w-36 shrink-0" aria-keyshortcuts="R" title={`${betLabel} (R)`}>
                 {isAllin ? "オールイン" : betLabel} {formatChips(amount)}
               </Button>
             </div>

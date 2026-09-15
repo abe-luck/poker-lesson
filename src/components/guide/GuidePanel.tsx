@@ -90,13 +90,13 @@ function PanelBody({ state, guide, onOpenHands, onOpenRules }: Props) {
       <LabeledSwitch label="おすすめを表示" checked={showRecommendation} onChange={setShowRecommendation} />
 
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={onOpenHands} className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#d9d9d4] text-sm hover:bg-background">
+        <button type="button" onClick={onOpenHands} className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-line text-sm hover:bg-background">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--felt)" strokeWidth="1.75" strokeLinecap="round" aria-hidden>
             <path d="M4 5h12M4 10h8M4 15h5" />
           </svg>
           役一覧
         </button>
-        <button type="button" onClick={onOpenRules} className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#d9d9d4] text-sm hover:bg-background">
+        <button type="button" onClick={onOpenRules} className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-line text-sm hover:bg-background">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--felt)" strokeWidth="1.6" strokeLinejoin="round" aria-hidden>
             <path d="M4 4.5h4.5A1.5 1.5 0 0 1 10 6v10a1.5 1.5 0 0 0-1.5-1.5H4zM16 4.5h-4.5A1.5 1.5 0 0 0 10 6v10a1.5 1.5 0 0 1 1.5-1.5H16z" />
           </svg>

@@ -5,6 +5,9 @@ import { getPotTotal } from "@/engine/game";
 import type { GameState, HandRank, Player } from "@/engine/types";
 import { StrengthMeter } from "@/components/guide/StrengthMeter";
 import type { Guide } from "@/components/guide/useGuide";
+
+/** 自分の今の役と強さ (初心者モード、またはプロモードで表示をオンにしたとき) */
+export type HandInfo = Pick<Guide, "hand" | "strength">;
 import { CardBack, CardSlot, PlayingCard } from "./PlayingCard";
 
 /** PC 表示での CPU 席の位置 (テーブル領域に対する %)。左 → 上 → 右 の時計回り */
@@ -44,7 +47,7 @@ function DealerBadge() {
   return (
     <span
       title="ディーラー"
-      className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-[#d9d9d4] bg-white text-[11px] font-bold text-[#1f2328]"
+      className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-line bg-white text-[11px] font-bold text-[#1f2328]"
     >
       D
     </span>
@@ -91,7 +94,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
       {info.label && (
         <span
           className={`self-start rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
-            info.payout > 0 ? "bg-felt text-white" : toAct ? "bg-accent-soft text-accent" : "bg-[#eef0f2] text-muted"
+            info.payout > 0 ? "bg-felt text-white" : toAct ? "bg-accent-soft text-accent" : "bg-chip text-muted"
           }`}
         >
           {info.label}
@@ -101,7 +104,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
   );
 }
 
-function HumanSeat({ state, player, index, guide }: { state: GameState; player: Player; index: number; guide?: Guide | null }) {
+function HumanSeat({ state, player, index, guide }: { state: GameState; player: Player; index: number; guide?: HandInfo | null }) {
   const info = seatInfo(state, player, index);
   const toAct = state.toActIndex === index;
   // 初心者モードのプレイ中は今の役を、ハンド終了後はショーダウンの役を強調
@@ -147,7 +150,7 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
         {info.label && (
           <span
             className={`self-start rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
-              info.payout > 0 ? "bg-felt text-white" : toAct ? "bg-accent-soft text-accent" : "bg-[#eef0f2] text-muted"
+              info.payout > 0 ? "bg-felt text-white" : toAct ? "bg-accent-soft text-accent" : "bg-chip text-muted"
             }`}
           >
             {toAct ? "あなたの番です" : info.label}
@@ -158,7 +161,7 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
   );
 }
 
-function Board({ state, guide }: { state: GameState; guide?: Guide | null }) {
+function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) {
   const winningCards = state.isHandOver
     ? state.result?.showdown
         .filter((s) => state.result?.pots[0]?.winnerIds.includes(s.playerId))
@@ -189,7 +192,7 @@ function Board({ state, guide }: { state: GameState; guide?: Guide | null }) {
   );
 }
 
-export function Table({ state, guide }: { state: GameState; guide?: Guide | null }) {
+export function Table({ state, guide }: { state: GameState; guide?: HandInfo | null }) {
   const humanIndex = state.players.findIndex((p) => p.isHuman);
   const cpus = state.players
     .map((player, index) => ({ player, index }))

@@ -55,7 +55,7 @@ export function RulesContent() {
               </div>
               <div className="flex gap-0.5" aria-label={`場のカード ${s.cards} 枚`}>
                 {Array.from({ length: 5 }, (_, j) => (
-                  <span key={j} className={`h-5 w-3.5 rounded-[3px] ${j < s.cards ? "bg-felt" : "border border-dashed border-[#c9cbc6]"}`} />
+                  <span key={j} className={`h-5 w-3.5 rounded-[3px] ${j < s.cards ? "bg-felt" : "border border-dashed border-line"}`} />
                 ))}
               </div>
             </li>

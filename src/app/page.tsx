@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LogoMark } from "@/components/ui/AppHeader";
+import { ResumeButton } from "@/components/screens/ResumeButton";
 import { buttonClass } from "@/components/ui/Button";
 
 type MenuItem = { title: string; description: string; icon: ReactNode; href?: string };
@@ -50,6 +51,7 @@ const menu: MenuItem[] = [
   },
   {
     title: "設定",
+    href: "/settings",
     description: "テーマ・効果音など",
     icon: (
       <svg {...iconProps}>
@@ -74,7 +76,7 @@ function PlayingCard({
 }) {
   return (
     <div
-      className={`flex h-[112px] w-[80px] flex-col justify-between rounded-[10px] border border-[#d9d9d4] bg-white px-2.5 py-2 font-bold shadow-[0_2px_6px_rgba(0,0,0,.18)] sm:h-[136px] sm:w-[96px] ${
+      className={`flex h-[112px] w-[80px] flex-col justify-between rounded-[10px] border border-line bg-white px-2.5 py-2 font-bold shadow-[0_2px_6px_rgba(0,0,0,.18)] sm:h-[136px] sm:w-[96px] ${
         red ? "text-[#b4443c]" : "text-[#1f2328]"
       } ${className}`}
     >
@@ -108,10 +110,11 @@ export default function Home() {
               <br className="hidden sm:inline" />
               はじめてでも、ガイドに沿って1ハンドずつ進められます。
             </p>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap gap-3">
               <Link href="/play" className={buttonClass("primary", "lg", "px-9")}>
                 はじめる
               </Link>
+              <ResumeButton />
             </div>
           </div>
 
@@ -134,7 +137,7 @@ export default function Home() {
                   <span className="flex items-center gap-2 text-[15px] font-bold">
                     {item.title}
                     {!item.href && (
-                      <span className="rounded-full bg-[#eef0f2] px-2 py-0.5 text-[11px] font-medium text-muted">準備中</span>
+                      <span className="rounded-full bg-chip px-2 py-0.5 text-[11px] font-medium text-muted">準備中</span>
                     )}
                   </span>
                   <span className="text-[13px] text-muted">{item.description}</span>
@@ -146,7 +149,7 @@ export default function Home() {
               <Link
                 key={item.title}
                 href={item.href}
-                className={`${base} transition hover:border-[#c9cbc6] hover:shadow-[0_2px_8px_rgba(0,0,0,.06)]`}
+                className={`${base} transition hover:border-line hover:shadow-[0_2px_8px_rgba(0,0,0,.06)]`}
               >
                 {body}
               </Link>

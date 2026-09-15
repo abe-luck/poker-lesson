@@ -65,7 +65,7 @@ export function ModeSelect() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-2xl font-bold">{m.title}</h2>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${primary ? "bg-accent-soft text-accent" : "bg-[#eef0f2] text-muted"}`}>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${primary ? "bg-accent-soft text-accent" : "bg-chip text-muted"}`}>
                     {m.tag}
                   </span>
                 </div>

@@ -11,7 +11,7 @@ export function Switch({ checked, onChange, label }: Props) {
       aria-label={label}
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative h-[26px] w-11 shrink-0 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${checked ? "bg-accent" : "bg-[#d5d8dc]"}`}
+      className={`relative h-[26px] w-11 shrink-0 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${checked ? "bg-accent" : "bg-track"}`}
     >
       <span className={`absolute top-[3px] size-5 rounded-full bg-white transition-all ${checked ? "left-[21px]" : "left-[3px]"}`} />
     </button>

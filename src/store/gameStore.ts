@@ -1,11 +1,15 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { decideCpuAction } from "@/ai/cpu";
+import { safeStorage } from "@/lib/storage";
+import { useStatsStore } from "./statsStore";
 import { cryptoRng } from "@/engine/cards";
 import { applyAction, createGame, getLegalActions, getPlayerToAct, rebuy, setBlinds, startHand } from "@/engine/game";
 import { blindLevel, blindsForLevel } from "@/engine/tournament";
 import type { Action, Blinds, CpuLevel, GameState, Mode } from "@/engine/types";
 
 export const HUMAN_ID = "you";
+export const SESSION_KEY = "poker.session.v1";
 
 export type GameFormat = "cash" | "tournament";
 export type TimeLimit = 0 | 15 | 30;
@@ -78,54 +82,83 @@ function newGameState(config: GameConfig): GameState {
   return startHand(game);
 }
 
-export const useGameStore = create<GameStore>()((set, get) => ({
-  draft: DEFAULT_CONFIG,
-  config: null,
-  game: null,
+export const useGameStore = create<GameStore>()(
+  persist(
+    (set, get) => {
+      /** 状態を更新し、ハンドが終わった瞬間なら成績に記録する */
+      const commit = (next: GameState) => {
+        const prev = get().game;
+        set({ game: next });
+        if (next.isHandOver && (!prev || !prev.isHandOver || prev.handNumber !== next.handNumber)) {
+          useStatsStore.getState().recordHand(next);
+        }
+      };
 
-  updateDraft: (patch) => set((s) => ({ draft: { ...s.draft, ...patch } })),
+      return {
+        draft: DEFAULT_CONFIG,
+        config: null,
+        game: null,
 
-  startGame: (draft) => {
-    const config = normalize(draft);
-    set({ config, game: newGameState(config) });
-  },
+        updateDraft: (patch) => set((s) => ({ draft: { ...s.draft, ...patch } })),
 
-  restart: () => {
-    const { config } = get();
-    if (config) set({ game: newGameState(config) });
-  },
+        startGame: (draft) => {
+          const config = normalize(draft);
+          set({ config, game: null });
+          commit(newGameState(config));
+        },
 
-  act: (action) => {
-    const { game } = get();
-    if (!game || !getPlayerToAct(game)?.isHuman) return;
-    set({ game: applyAction(game, action) });
-  },
+        restart: () => {
+          const { config } = get();
+          if (!config) return;
+          set({ game: null });
+          commit(newGameState(config));
+        },
 
-  timeout: () => {
-    const { game } = get();
-    if (!game || !getPlayerToAct(game)?.isHuman) return;
-    const legal = getLegalActions(game);
-    set({ game: applyAction(game, { type: legal?.check ? "check" : "fold" }) });
-  },
+        act: (action) => {
+          const { game } = get();
+          if (!game || !getPlayerToAct(game)?.isHuman) return;
+          commit(applyAction(game, action));
+        },
 
-  cpuAct: () => {
-    const { game } = get();
-    if (!game || game.toActIndex === null || game.players[game.toActIndex].isHuman) return;
-    set({ game: applyAction(game, decideCpuAction(game)) });
-  },
+        timeout: () => {
+          const { game } = get();
+          if (!game || !getPlayerToAct(game)?.isHuman) return;
+          const legal = getLegalActions(game);
+          commit(applyAction(game, { type: legal?.check ? "check" : "fold" }));
+        },
 
-  nextHand: () => {
-    const { game, config } = get();
-    if (!game?.isHandOver || !config) return;
-    const next =
-      config.format === "tournament" ? setBlinds(game, blindsForLevel(config.blinds, blindLevel(game.handNumber))) : game;
-    set({ game: startHand(next) });
-  },
+        cpuAct: () => {
+          const { game } = get();
+          if (!game || game.toActIndex === null || game.players[game.toActIndex].isHuman) return;
+          commit(applyAction(game, decideCpuAction(game)));
+        },
 
-  rebuyHuman: () => {
-    const { game, config } = get();
-    if (game?.isHandOver && config) set({ game: startHand(rebuy(game, HUMAN_ID, config.startingStack)) });
-  },
+        nextHand: () => {
+          const { game, config } = get();
+          if (!game?.isHandOver || !config) return;
+          const next =
+            config.format === "tournament" ? setBlinds(game, blindsForLevel(config.blinds, blindLevel(game.handNumber))) : game;
+          commit(startHand(next));
+        },
 
-  quit: () => set({ game: null, config: null }),
-}));
+        rebuyHuman: () => {
+          const { game, config } = get();
+          if (game?.isHandOver && config) commit(startHand(rebuy(game, HUMAN_ID, config.startingStack)));
+        },
+
+        quit: () => set({ game: null, config: null }),
+      };
+    },
+    {
+      name: SESSION_KEY,
+      storage: safeStorage,
+      // 途中で閉じても続きから再開できるように、設定と進行中のゲームを保存する
+      partialize: (s) => ({ draft: s.draft, config: s.config, game: s.game }),
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<GameStore> | undefined;
+        return { ...current, ...saved, draft: { ...DEFAULT_CONFIG, ...saved?.draft } };
+      },
+      skipHydration: true,
+    },
+  ),
+);

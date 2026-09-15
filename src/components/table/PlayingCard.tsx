@@ -21,14 +21,21 @@ const suitText: Record<CardSize, string> = {
   lg: "text-[26px] sm:text-[30px]",
 };
 
+/** マークの色。4色デッキの設定は CSS 変数で切り替える (globals.css) */
+const SUIT_COLOR: Record<Card["suit"], string> = {
+  s: "text-(--suit-black)",
+  h: "text-(--suit-red)",
+  d: "text-(--suit-diamond)",
+  c: "text-(--suit-club)",
+};
+
 export function PlayingCard({ card, size = "md", highlight = false }: { card: Card; size?: CardSize; highlight?: boolean }) {
-  const red = card.suit === "h" || card.suit === "d";
   return (
     <div
       role="img"
       aria-label={`${SUIT_NAMES[card.suit]}の${rankLabel(card.rank)}`}
-      className={`flex shrink-0 flex-col justify-between border border-[#d9d9d4] bg-white font-bold shadow-[0_1px_3px_rgba(0,0,0,.2)] ${box[size]} ${
-        red ? "text-[#b4443c]" : "text-[#1f2328]"
+      className={`animate-deal flex shrink-0 flex-col justify-between border border-[#d9d9d4] bg-white font-bold shadow-[0_1px_3px_rgba(0,0,0,.2)] ${box[size]} ${
+        SUIT_COLOR[card.suit]
       } ${highlight ? "outline-3 outline-offset-2 outline-[#8fb3ff]" : ""}`}
     >
       <span className={`leading-none ${rankText[size]}`}>{rankLabel(card.rank)}</span>

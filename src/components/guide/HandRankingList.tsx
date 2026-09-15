@@ -22,7 +22,7 @@ export function HandRankingList() {
         {RANKINGS.map((r, i) => (
           <li key={r.name} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-xs font-bold text-muted tabular-nums">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-chip text-xs font-bold text-muted tabular-nums">
                 {i + 1}
               </span>
               <div className="flex flex-col gap-0.5">

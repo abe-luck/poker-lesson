@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { actionSentence, formatChips, MODE_NAMES } from "@/content/ja";
 import { getLegalActions, getPlayerToAct, isGameOver } from "@/engine/game";
-import { STRENGTH_LABELS } from "@/guide/guide";
+import { currentHand, STRENGTH_LABELS } from "@/guide/guide";
+import { useSettingsStore } from "@/store/settingsStore";
+import { useGameStoreHydrated } from "@/components/SettingsHydrator";
+import { useGameSounds } from "./useGameSounds";
 import { useGameStore } from "@/store/gameStore";
 import { ActionBar } from "@/components/controls/ActionBar";
 import { GuideDetails, GuideSidePanel, GuideSummaryButton } from "@/components/guide/GuidePanel";
@@ -27,12 +30,18 @@ const CPU_DELAY = { beginner: 1100, pro: 600 } as const;
 type Reference = "guide" | "hands" | "rules" | "log" | null;
 
 export function GameScreen() {
-  const game = useGameStore((s) => s.game);
+  const hydrated = useGameStoreHydrated();
+  const storedGame = useGameStore((s) => s.game);
+  const game = hydrated ? storedGame : null;
   const config = useGameStore((s) => s.config);
   const { act, cpuAct, nextHand, rebuyHuman, restart, quit, timeout } = useGameStore.getState();
   const guide = useGuide(game);
+  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
+  const proShowHand = useSettingsStore((s) => s.proShowHand);
+  const updateSettings = useSettingsStore((s) => s.update);
   const [reference, setReference] = useState<Reference>(null);
   const [closedReviewHand, setClosedReviewHand] = useState(0);
+  useGameSounds(game);
 
   const toAct = game ? getPlayerToAct(game) : null;
   // 役一覧などを開いている間は CPU と持ち時間を止める
@@ -50,6 +59,17 @@ export function GameScreen() {
     paused,
     onExpire: timeout,
   });
+
+  if (!hydrated) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <AppHeader />
+        <main className="flex flex-1 items-center justify-center text-muted" aria-busy="true">
+          読み込み中…
+        </main>
+      </div>
+    );
+  }
 
   if (!game) {
     return (
@@ -91,13 +111,34 @@ export function GameScreen() {
   const levelLeft = tournament ? handsUntilNextLevel(game.handNumber) : null;
   const headerButton = "rounded-lg px-2.5 py-2 text-sm text-muted hover:bg-background hover:text-foreground";
 
+  // プロモードでも設定で「今の役を表示」をオンにしていれば、役だけ表示する (強さは出さない)
+  const human = game.players.find((p) => p.isHuman);
+  const handInfo =
+    guide ??
+    (proShowHand && human && (human.status === "active" || human.status === "allin")
+      ? { hand: currentHand(human, game.board), strength: null }
+      : null);
+
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader
         compact
         back={{ href: "/", label: "やめる", onClick: quit }}
         right={
-          <div className="flex shrink-0 gap-1">
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-pressed={soundEnabled}
+              aria-label={soundEnabled ? "効果音をオフにする" : "効果音をオンにする"}
+              title={soundEnabled ? "効果音: オン" : "効果音: オフ"}
+              onClick={() => updateSettings({ soundEnabled: !soundEnabled })}
+              className="flex size-9 items-center justify-center rounded-lg text-muted hover:bg-background hover:text-foreground"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M3 8h3l4-3.5v11L6 12H3z" />
+                {soundEnabled ? <path d="M13.5 7.5a3.5 3.5 0 0 1 0 5M15.5 5a7 7 0 0 1 0 10" /> : <path d="m13.5 8 4 4m0-4-4 4" />}
+              </svg>
+            </button>
             {!beginner && (
               <button type="button" onClick={() => setReference("log")} className={`${headerButton} xl:hidden`}>
                 流れ
@@ -113,7 +154,7 @@ export function GameScreen() {
         }
       >
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${beginner ? "bg-accent-soft text-accent" : "bg-[#eef0f2] text-muted"}`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${beginner ? "bg-accent-soft text-accent" : "bg-chip text-muted"}`}
         >
           {MODE_NAMES[game.mode]}
         </span>
@@ -142,7 +183,7 @@ export function GameScreen() {
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           <main className="flex-1 px-4 py-4 sm:px-6 md:py-6">
-            <Table state={game} guide={guide} />
+            <Table state={game} guide={handInfo} />
           </main>
 
           <p className="sr-only" aria-live="polite">

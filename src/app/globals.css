@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
+/* ダークモードは data-theme="dark"、または「端末に合わせる」(data-theme なし) で端末がダークのとき */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
+
 /* 配色トークン (docs/DESIGN.md 5.2) */
 :root {
+  color-scheme: light;
   --background: #f7f7f5;
   --surface: #ffffff;
   --felt: #2f5d50;
@@ -9,12 +17,22 @@
   --foreground: #1f2328;
   --muted: #5b636e;
   --border: #e4e4e0;
+  --line: #d9d9d4;
+  --chip: #eef0f2;
+  --track: #d5d8dc;
   --accent: #2f6feb;
   --accent-soft: #eef3fd;
   --danger: #b4443c;
+  /* カードの色 (4色デッキ時に ◆ と ♣ を変える) */
+  --suit-red: #b4443c;
+  --suit-black: #1f2328;
+  --suit-diamond: var(--suit-red);
+  --suit-club: var(--suit-black);
+  --motion: 1;
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --background: #17191c;
   --surface: #22252a;
   --felt: #264b41;
@@ -22,9 +40,36 @@
   --foreground: #e6e8eb;
   --muted: #9aa3ae;
   --border: #33373d;
+  --line: #41464e;
+  --chip: #2d3137;
+  --track: #454a52;
   --accent: #5b8def;
   --accent-soft: #1f2a3d;
   --danger: #d46a62;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --background: #17191c;
+    --surface: #22252a;
+    --felt: #264b41;
+    --felt-rim: #1f3f36;
+    --foreground: #e6e8eb;
+    --muted: #9aa3ae;
+    --border: #33373d;
+    --line: #41464e;
+    --chip: #2d3137;
+    --track: #454a52;
+    --accent: #5b8def;
+    --accent-soft: #1f2a3d;
+    --danger: #d46a62;
+  }
+}
+
+:root[data-four-color="true"] {
+  --suit-diamond: #2b63c6;
+  --suit-club: #2f7d4f;
 }
 
 @theme inline {
@@ -35,6 +80,9 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-line: var(--line);
+  --color-chip: var(--chip);
+  --color-track: var(--track);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
@@ -44,6 +92,29 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* カードを配る・めくる動き。設定の「アニメーション」で速さを変える */
+@keyframes deal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+.animate-deal {
+  animation: deal-in calc(220ms * var(--motion)) ease-out both;
+}
+
+:root[data-motion="short"] {
+  --motion: 0.5;
+}
+
+:root[data-motion="none"] *,
+:root[data-motion="none"] *::before,
+:root[data-motion="none"] *::after {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
