@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Top.dc.html", "title": "01 トップ", "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "ModeSelect.dc.html", "title": "02 モード選択", "x": 1540, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Setup.dc.html", "title": "03 ゲーム設定（プロ）", "x": 3080, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Main.dc.html", "title": "04 ゲーム画面（初心者・PC）", "x": 0, "y": 1040, "w": 1440, "h": 900 },
+    { "file": "Result.dc.html", "title": "05 ハンドの振り返り", "x": 1540, "y": 1040, "w": 1440, "h": 900 },
+    { "file": "GamePro.dc.html", "title": "06 ゲーム画面（プロ・ダーク）", "x": 3080, "y": 1040, "w": 1440, "h": 900 },
+    { "file": "GameMobile.dc.html", "title": "07 ゲーム画面（初心者・スマホ）", "x": 0, "y": 2080, "w": 390, "h": 844 },
+    { "file": "Settings.dc.html", "title": "08 設定", "x": 490, "y": 2080, "w": 1440, "h": 1000 }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #F7F7F5; font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif; color: #1F2328; }
+    a { color: #2F6FEB; } a:hover { color: #1F55C0; }
+    .card { width: 96px; height: 136px; border-radius: 10px; background: #FFFFFF; border: 1px solid #D9D9D4; box-sizing: border-box; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+    .card .cr { font-size: 30px; line-height: 1; }
+    .card .cs { font-size: 40px; line-height: 1; align-self: flex-end; }
+    .red { color: #B4443C; } .blk { color: #1F2328; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #F7F7F5;">
+  <header style="height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: #FFFFFF; border-bottom: 1px solid #E4E4E0; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+      <svg width="24" height="24" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="1.6"><rect x="3" y="5" width="9" height="12" rx="1.5" transform="rotate(-10 7.5 11)"></rect><rect x="8" y="3" width="9" height="12" rx="1.5" transform="rotate(8 12.5 9)"></rect></svg>
+      <span>Poker Lesson</span>
+    </div>
+    <nav style="display: flex; gap: 32px; font-size: 14px; color: #5B636E;">
+      <span>ルール説明</span><span>役一覧</span><span>成績</span><span>設定</span>
+    </nav>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 72px;">
+    <div style="width: 1120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; align-items: center;">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <span style="font-size: 14px; color: #5B636E; font-weight: 500;">テキサス・ホールデム</span>
+        <h1 style="margin: 0; font-size: 56px; line-height: 1.1; font-weight: 700;">Poker Lesson</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 1.8; color: #5B636E; text-wrap: pretty;">ルールを覚えながら、テキサス・ホールデムを遊べます。<br>はじめてでも、ガイドに沿って1ハンドずつ進められます。</p>
+        <div style="display: flex; gap: 12px; margin-top: 12px;">
+          <div style="height: 52px; padding: 0 36px; border-radius: 8px; background: #2F6FEB; color: #FFFFFF; display: flex; align-items: center; font-size: 16px; font-weight: 700;">はじめる</div>
+          <div style="height: 52px; padding: 0 28px; border-radius: 8px; background: #FFFFFF; border: 1px solid #D9D9D4; color: #1F2328; display: flex; align-items: center; font-size: 16px; font-weight: 500;">ルールを読む</div>
+        </div>
+      </div>
+      <div style="height: 340px; border-radius: 24px; background: #2F5D50; box-shadow: inset 0 0 0 10px #284F44; display: flex; align-items: center; justify-content: center; gap: 0;">
+        <div class="card blk" style="transform: rotate(-12deg) translate(18px, 10px);"><span class="cr">A</span><span class="cs">&spades;&#xFE0E;</span></div>
+        <div class="card red" style="transform: translateY(-6px); z-index: 1;"><span class="cr">K</span><span class="cs">&hearts;&#xFE0E;</span></div>
+        <div class="card red" style="transform: rotate(12deg) translate(-18px, 10px); z-index: 2;"><span class="cr">Q</span><span class="cs">&diams;&#xFE0E;</span></div>
+      </div>
+    </div>
+
+    <div style="width: 1120px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 72px;">
+      <div style="background: #FFFFFF; border: 1px solid #E4E4E0; border-radius: 12px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="1.6" stroke-linejoin="round"><path d="M4 4.5h4.5A1.5 1.5 0 0 1 10 6v10a1.5 1.5 0 0 0-1.5-1.5H4zM16 4.5h-4.5A1.5 1.5 0 0 0 10 6v10a1.5 1.5 0 0 1 1.5-1.5H16z"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 700; font-size: 15px;">ルール説明</span><span style="font-size: 13px; color: #5B636E;">流れと用語を図で説明</span></div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4E0; border-radius: 12px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="1.6" stroke-linecap="round"><path d="M4 5h12M4 10h8M4 15h5"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 700; font-size: 15px;">役一覧</span><span style="font-size: 13px; color: #5B636E;">10種類の役を強い順に</span></div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4E0; border-radius: 12px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="1.6" stroke-linecap="round"><path d="M4 16V9M10 16V4M16 16v-5"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 700; font-size: 15px;">成績</span><span style="font-size: 13px; color: #5B636E;">勝率と収支を確認</span></div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4E0; border-radius: 12px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h8M15 6h1M4 14h2M9 14h7"></path><circle cx="13.5" cy="6" r="1.5"></circle><circle cx="7.5" cy="14" r="1.5"></circle></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 700; font-size: 15px;">設定</span><span style="font-size: 13px; color: #5B636E;">テーマ・効果音など</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="height: 64px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #5B636E;">
+    このアプリはゲームです。実際のお金を賭けるものではありません。
+  </footer>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #17191C; font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif; color: #E6E8EB; }
+    a { color: #5B8DEF; } a:hover { color: #86AAF3; }
+    .card { width: 60px; height: 84px; border-radius: 7px; background: #F4F4F2; border: 1px solid #C9CBC6; box-sizing: border-box; padding: 6px 8px; display: flex; flex-direction: column; justify-content: space-between; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+    .card .cr { font-size: 20px; line-height: 1; }
+    .card .cs { font-size: 26px; line-height: 1; align-self: flex-end; }
+    .card.lg { width: 64px; height: 90px; }
+    .red { color: #B4443C; } .blk { color: #1F2328; }
+    .slot { width: 60px; height: 84px; border-radius: 7px; border: 1.5px dashed rgba(255,255,255,.28); box-sizing: border-box; }
+    .back { width: 20px; height: 29px; border-radius: 3px; background: repeating-linear-gradient(45deg, #3E4C5E 0 3px, #4A5A6E 3px 6px); border: 1.5px solid #C9CBC6; }
+    .seat { position: absolute; width: 160px; background: #22252A; border: 1px solid #33373D; border-radius: 12px; padding: 10px 12px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
+    .seat.fold { opacity: .45; }
+    .nm { font-size: 14px; font-weight: 700; }
+    .st { font-size: 14px; color: #9AA3AE; font-variant-numeric: tabular-nums; }
+    .tag { font-size: 11px; color: #9AA3AE; }
+    .ibtn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #33373D; display: flex; align-items: center; justify-content: center; color: #9AA3AE; box-sizing: border-box; }
+    .num { font-variant-numeric: tabular-nums; }
+    .preset { height: 34px; padding: 0 12px; border-radius: 6px; border: 1px solid #33373D; display: flex; align-items: center; font-size: 13px; color: #E6E8EB; box-sizing: border-box; }
+    .lg-row { display: flex; justify-content: space-between; font-size: 13px; }
+    .lg-row span:last-child { color: #9AA3AE; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #17191C;">
+  <header style="height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #22252A; border-bottom: 1px solid #33373D; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 14px;">
+      <div style="display: flex; align-items: center; gap: 4px; color: #9AA3AE;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"></path></svg>
+        <span>やめる</span>
+      </div>
+      <div style="width: 1px; height: 20px; background: #33373D;"></div>
+      <span style="font-size: 12px; font-weight: 500; color: #E6E8EB; background: #33373D; padding: 4px 10px; border-radius: 999px;">プロモード</span>
+      <span style="color: #9AA3AE;">トーナメント <span style="color: #E6E8EB; font-weight: 500;">レベル 3</span></span>
+      <span style="color: #9AA3AE;">ブラインド <span class="num" style="color: #E6E8EB; font-weight: 500;">20 / 40</span></span>
+      <span style="color: #9AA3AE;">次のレベルまで <span class="num" style="color: #E6E8EB; font-weight: 500;">3</span> ハンド</span>
+      <span style="color: #9AA3AE;">ハンド <span class="num" style="color: #E6E8EB; font-weight: 500;">#27</span></span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <div class="ibtn"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l4-3.5v11L6 12H3z"></path><path d="M13.5 7.5a3.5 3.5 0 0 1 0 5M15.5 5a7 7 0 0 1 0 10"></path></svg></div>
+      <div class="ibtn"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h8M15 6h1M4 14h2M9 14h7"></path><circle cx="13.5" cy="6" r="1.5"></circle><circle cx="7.5" cy="14" r="1.5"></circle></svg></div>
+    </div>
+  </header>
+
+  <div style="flex: 1; display: flex; min-height: 0;">
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <div style="position: relative; height: 704px;">
+        <div style="position: absolute; left: 130px; top: 96px; width: 900px; height: 430px; border-radius: 215px; background: #264B41; box-shadow: inset 0 0 0 12px #1F3F36; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
+          <div class="num" style="font-size: 15px; font-weight: 700; color: #FFFFFF; background: rgba(0,0,0,.28); padding: 6px 16px; border-radius: 999px;">ポット 450</div>
+          <div style="display: flex; gap: 8px;">
+            <div class="card blk"><span class="cr">K</span><span class="cs">&clubs;&#xFE0E;</span></div>
+            <div class="card red"><span class="cr">9</span><span class="cs">&diams;&#xFE0E;</span></div>
+            <div class="card blk"><span class="cr">4</span><span class="cs">&spades;&#xFE0E;</span></div>
+            <div class="card red"><span class="cr">J</span><span class="cs">&hearts;&#xFE0E;</span></div>
+            <div class="slot"></div>
+          </div>
+        </div>
+
+        <div class="num" style="position: absolute; left: 556px; top: 110px; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #FFFFFF;"><div style="width: 14px; height: 14px; border-radius: 50%; background: #F4F4F2; box-shadow: inset 0 0 0 3px #9AA3AE;"></div>150</div>
+        <div style="position: absolute; left: 700px; top: 470px; width: 28px; height: 28px; border-radius: 50%; background: #F4F4F2; color: #1F2328; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">D</div>
+
+        <div class="seat" style="left: 500px; top: 16px; border-color: #5B8DEF;">
+          <div style="display: flex; flex-direction: column;"><span class="nm">CPU3</span><span class="st">2,140</span></div>
+          <div style="display: flex; gap: 3px;"><div class="back"></div><div class="back"></div></div>
+        </div>
+        <div class="seat fold" style="left: 60px; top: 116px;">
+          <div style="display: flex; flex-direction: column;"><span class="nm">CPU2</span><span class="st">1,300</span></div><span class="tag">フォールド</span>
+        </div>
+        <div class="seat fold" style="left: 940px; top: 116px;">
+          <div style="display: flex; flex-direction: column;"><span class="nm">CPU4</span><span class="st">960</span></div><span class="tag">フォールド</span>
+        </div>
+        <div class="seat fold" style="left: 60px; top: 400px;">
+          <div style="display: flex; flex-direction: column;"><span class="nm">CPU1</span><span class="st">820</span></div><span class="tag">フォールド</span>
+        </div>
+        <div class="seat fold" style="left: 940px; top: 400px;">
+          <div style="display: flex; flex-direction: column;"><span class="nm">CPU5</span><span class="st">1,180</span></div><span class="tag">フォールド</span>
+        </div>
+
+        <div style="position: absolute; left: 400px; top: 500px; width: 360px; background: #22252A; border: 2px solid #5B8DEF; border-radius: 14px; padding: 14px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <div style="display: flex; gap: 8px;">
+              <div class="card lg red"><span class="cr">A</span><span class="cs">&diams;&#xFE0E;</span></div>
+              <div class="card lg red"><span class="cr">Q</span><span class="cs">&diams;&#xFE0E;</span></div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 15px; font-weight: 700;">あなた</span>
+              <span class="num" style="font-size: 20px; font-weight: 700;">1,460</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA3AE;"><span>残り時間</span><span class="num">18秒</span></div>
+            <div style="height: 4px; border-radius: 2px; background: #33373D;"><div style="width: 60%; height: 4px; border-radius: 2px; background: #5B8DEF;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1; background: #22252A; border-top: 1px solid #33373D; padding: 0 28px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 128px; height: 56px; border-radius: 8px; border: 1px solid #33373D; color: #D46A62; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-sizing: border-box;">フォールド</div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+          <div class="num" style="width: 150px; height: 56px; border-radius: 8px; border: 1px solid #33373D; color: #E6E8EB; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-sizing: border-box;">コール 150</div>
+          <span class="num" style="font-size: 12px; color: #9AA3AE;">必要な勝率 25%</span>
+        </div>
+        <div style="width: 1px; height: 64px; background: #33373D; margin: 0 8px;"></div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 6px;">
+            <div class="preset">1/3 ポット</div><div class="preset">1/2 ポット</div><div class="preset">ポット</div><div class="preset">オールイン</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="position: relative; flex: 1; height: 4px; border-radius: 2px; background: #33373D;">
+              <div style="width: 26%; height: 4px; border-radius: 2px; background: #5B8DEF;"></div>
+              <div style="position: absolute; left: calc(26% - 9px); top: -7px; width: 18px; height: 18px; border-radius: 50%; background: #E6E8EB; box-shadow: 0 1px 3px rgba(0,0,0,.4);"></div>
+            </div>
+            <div class="num" style="width: 84px; height: 34px; border-radius: 6px; border: 1px solid #33373D; background: #17191C; display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; box-sizing: border-box; font-size: 14px;">600</div>
+          </div>
+        </div>
+        <div class="num" style="width: 150px; height: 56px; border-radius: 8px; background: #5B8DEF; color: #0F1830; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700;">レイズ 600</div>
+      </div>
+    </div>
+
+    <aside style="width: 280px; background: #22252A; border-left: 1px solid #33373D; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+      <span style="font-size: 15px; font-weight: 700;">このハンドの流れ</span>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 700; color: #9AA3AE;">プリフロップ</span>
+        <div class="lg-row"><span>CPU3</span><span>レイズ 120</span></div>
+        <div class="lg-row"><span>CPU4</span><span>フォールド</span></div>
+        <div class="lg-row"><span>CPU5</span><span>フォールド</span></div>
+        <div class="lg-row"><span>あなた</span><span>コール 120</span></div>
+        <div class="lg-row"><span>CPU1</span><span>フォールド</span></div>
+        <div class="lg-row"><span>CPU2</span><span>フォールド</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 700; color: #9AA3AE;">フロップ　K&clubs;&#xFE0E; 9&diams;&#xFE0E; 4&spades;&#xFE0E;</span>
+        <div class="lg-row"><span>CPU3</span><span>チェック</span></div>
+        <div class="lg-row"><span>あなた</span><span>チェック</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 700; color: #9AA3AE;">ターン　J&hearts;&#xFE0E;</span>
+        <div class="lg-row"><span>CPU3</span><span>ベット 150</span></div>
+        <div class="lg-row" style="font-weight: 700;"><span>あなた</span><span style="color: #5B8DEF;">考え中</span></div>
+      </div>
+      <div style="margin-top: auto; height: 40px; border-radius: 8px; border: 1px solid #33373D; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #9AA3AE; box-sizing: border-box;">過去のハンド履歴</div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

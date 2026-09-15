@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #F7F7F5; font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif; color: #1F2328; }
+    a { color: #2F6FEB; } a:hover { color: #1F55C0; }
+    .card { width: 48px; height: 68px; border-radius: 6px; background: #FFFFFF; border: 1px solid #D9D9D4; box-sizing: border-box; padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+    .card .cr { font-size: 16px; line-height: 1; }
+    .card .cs { font-size: 20px; line-height: 1; align-self: flex-end; }
+    .card.sm { width: 40px; height: 56px; }
+    .card.sm .cr { font-size: 14px; } .card.sm .cs { font-size: 17px; }
+    .card.hole { box-shadow: 0 0 0 2px #2F6FEB; border-color: #2F6FEB; }
+    .red { color: #B4443C; } .blk { color: #1F2328; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; background: #F7F7F5; overflow: hidden;">
+  <!-- 背景のゲーム画面（暗く） -->
+  <div style="height: 56px; background: #FFFFFF; border-bottom: 1px solid #E4E4E0;"></div>
+  <div style="position: absolute; left: 110px; top: 152px; width: 860px; height: 470px; border-radius: 235px; background: #2F5D50; box-shadow: inset 0 0 0 12px #284F44;"></div>
+  <div style="position: absolute; right: 0; top: 56px; width: 360px; bottom: 0; background: #FFFFFF; border-left: 1px solid #E4E4E0;"></div>
+  <div style="position: absolute; inset: 0; background: rgba(23,25,28,.5);"></div>
+
+  <!-- 振り返りダイアログ -->
+  <div style="position: absolute; left: 380px; top: 96px; width: 680px; background: #FFFFFF; border-radius: 16px; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 12px 40px rgba(0,0,0,.25);">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 13px; color: #5B636E;">ハンド #3 の結果</span>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 700;">CPU3 の勝ち</h2>
+      <span class="num" style="font-size: 15px; color: #5B636E;">ポット 160 を獲得しました</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="background: #F7F7F5; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 15px; font-weight: 700;">CPU3</span><span style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #2F5D50; padding: 2px 8px; border-radius: 999px;">勝ち</span></div>
+          <span style="font-size: 18px; font-weight: 700;">ツーペア（Kと7）</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <div class="card blk hole"><span class="cr">K</span><span class="cs">&spades;&#xFE0E;</span></div>
+          <div class="card red"><span class="cr">K</span><span class="cs">&hearts;&#xFE0E;</span></div>
+          <div class="card blk hole"><span class="cr">7</span><span class="cs">&clubs;&#xFE0E;</span></div>
+          <div class="card red"><span class="cr">7</span><span class="cs">&diams;&#xFE0E;</span></div>
+          <div class="card blk"><span class="cr">A</span><span class="cs">&spades;&#xFE0E;</span></div>
+        </div>
+      </div>
+      <div style="background: #F7F7F5; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 15px; font-weight: 700;">あなた</span>
+          <span style="font-size: 18px; font-weight: 700;">ワンペア（Aのペア）</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <div class="card red hole"><span class="cr">A</span><span class="cs">&hearts;&#xFE0E;</span></div>
+          <div class="card blk"><span class="cr">A</span><span class="cs">&spades;&#xFE0E;</span></div>
+          <div class="card red"><span class="cr">K</span><span class="cs">&hearts;&#xFE0E;</span></div>
+          <div class="card blk hole"><span class="cr">Q</span><span class="cs">&clubs;&#xFE0E;</span></div>
+          <div class="card red"><span class="cr">9</span><span class="cs">&hearts;&#xFE0E;</span></div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #5B636E; padding: 0 4px;">
+        <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; border-radius: 3px; box-shadow: 0 0 0 2px #2F6FEB;"></div><span>青い枠は手札。役に使った5枚です</span></div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span>場のカード</span>
+          <div class="card sm blk"><span class="cr">A</span><span class="cs">&spades;&#xFE0E;</span></div>
+          <div class="card sm red"><span class="cr">K</span><span class="cs">&hearts;&#xFE0E;</span></div>
+          <div class="card sm red"><span class="cr">7</span><span class="cs">&diams;&#xFE0E;</span></div>
+          <div class="card sm blk"><span class="cr">2</span><span class="cs">&clubs;&#xFE0E;</span></div>
+          <div class="card sm red"><span class="cr">9</span><span class="cs">&hearts;&#xFE0E;</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: #EEF3FD; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 15px; font-weight: 700;">なぜ CPU3 が勝ったの？</span>
+      <p style="margin: 0; font-size: 14px; line-height: 1.8; text-wrap: pretty;">ツーペアはワンペアより強い役です。役の種類が違うときは、カードの数字の大きさに関係なく、強い役を持っている方が勝ちます。</p>
+      <a style="font-size: 14px; font-weight: 500;">役一覧で強さの順番を見る</a>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div class="num" style="display: flex; gap: 20px; font-size: 14px; color: #5B636E;">
+        <span>このハンドの収支 <span style="color: #B4443C; font-weight: 700;">−60</span></span>
+        <span>残りチップ <span style="color: #1F2328; font-weight: 700;">940</span></span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <div style="height: 48px; padding: 0 20px; border-radius: 8px; border: 1px solid #D9D9D4; display: flex; align-items: center; font-size: 15px; font-weight: 500; box-sizing: border-box;">トップに戻る</div>
+        <div style="height: 48px; padding: 0 28px; border-radius: 8px; background: #2F6FEB; color: #FFFFFF; display: flex; align-items: center; font-size: 15px; font-weight: 700;">次のハンドへ</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

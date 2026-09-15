@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #F7F7F5; font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif; color: #1F2328; }
+    a { color: #2F6FEB; } a:hover { color: #1F55C0; }
+    .feat { display: flex; gap: 10px; align-items: center; font-size: 15px; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #F7F7F5;">
+  <header style="height: 64px; display: flex; align-items: center; gap: 16px; padding: 0 40px; background: #FFFFFF; border-bottom: 1px solid #E4E4E0; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #5B636E;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"></path></svg>
+      <span>戻る</span>
+    </div>
+    <div style="width: 1px; height: 20px; background: #E4E4E0;"></div>
+    <span style="font-weight: 700; font-size: 16px;">Poker Lesson</span>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 72px; gap: 40px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700;">モードを選ぶ</h1>
+      <p style="margin: 0; font-size: 15px; color: #5B636E;">ゲームを始めるたびに選べます。</p>
+    </div>
+
+    <div style="width: 960px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;">
+      <div style="background: #FFFFFF; border: 2px solid #2F6FEB; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 24px; font-weight: 700;">初心者モード</span>
+          <span style="font-size: 12px; font-weight: 500; color: #2F6FEB; background: #EEF3FD; padding: 4px 10px; border-radius: 999px;">はじめての方に</span>
+        </div>
+        <p style="margin: 0; font-size: 15px; color: #5B636E; line-height: 1.7;">ガイドを見ながら、ルールを覚えて進めます。</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>今の段階と、できることを説明</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>今の役と、手の強さを表示</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>おすすめのアクションと理由</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>ハンド後に勝ち負けの理由を解説</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+          <div style="height: 52px; border-radius: 8px; background: #2F6FEB; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700;">初心者モードで遊ぶ</div>
+          <span style="font-size: 13px; color: #5B636E; text-align: center;">初めての場合は、3ハンドの練習から始まります</span>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E4E4E0; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 24px; font-weight: 700;">プロモード</span>
+          <span style="font-size: 12px; font-weight: 500; color: #5B636E; background: #EEF0F2; padding: 4px 10px; border-radius: 999px;">経験者向け</span>
+        </div>
+        <p style="margin: 0; font-size: 15px; color: #5B636E; line-height: 1.7;">ヒントなしで、テンポよく本格的に遊びます。</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>CPUの強さを2段階から選択</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>トーナメント形式と持ち時間</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>ポットオッズ表示（任意）</span></div>
+          <div class="feat"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#2F5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3 3 7-7"></path></svg><span>ハンド履歴と成績の記録</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+          <div style="height: 52px; border-radius: 8px; background: #FFFFFF; border: 1px solid #D9D9D4; color: #1F2328; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-sizing: border-box;">プロモードで遊ぶ</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>
