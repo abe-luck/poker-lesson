@@ -1,4 +1,7 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { LogoMark } from "@/components/ui/AppHeader";
+import { buttonClass } from "@/components/ui/Button";
 
 type MenuItem = { title: string; description: string; icon: ReactNode };
 
@@ -14,7 +17,7 @@ const iconProps = {
   "aria-hidden": true,
 } as const;
 
-// 各画面はまだ実装していないため、リンクは付けていない (M2 以降で追加)
+// 各画面はまだ実装していないため、リンクは付けていない (M3 以降で追加)
 const menu: MenuItem[] = [
   {
     title: "ルール説明",
@@ -88,10 +91,7 @@ export default function Home() {
     <div className="flex flex-1 flex-col">
       <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-10">
         <div className="flex items-center gap-2.5 text-lg font-bold">
-          <svg width="24" height="24" viewBox="0 0 20 20" fill="none" stroke="var(--felt)" strokeWidth="1.6" aria-hidden>
-            <rect x="3" y="5" width="9" height="12" rx="1.5" transform="rotate(-10 7.5 11)" />
-            <rect x="8" y="3" width="9" height="12" rx="1.5" transform="rotate(8 12.5 9)" />
-          </svg>
+          <LogoMark />
           Poker Lesson
         </div>
       </header>
@@ -106,15 +106,10 @@ export default function Home() {
               <br className="hidden sm:inline" />
               はじめてでも、ガイドに沿って1ハンドずつ進められます。
             </p>
-            <div className="mt-3 flex flex-col gap-2">
-              <button
-                type="button"
-                disabled
-                className="h-13 w-fit cursor-not-allowed rounded-lg bg-accent px-9 text-base font-bold text-white opacity-60"
-              >
+            <div className="mt-3">
+              <Link href="/play" className={buttonClass("primary", "lg", "px-9")}>
                 はじめる
-              </button>
-              <span className="text-[13px] text-muted">ゲームは現在開発中です</span>
+              </Link>
             </div>
           </div>
 

@@ -360,6 +360,17 @@ function showdown(state: GameState): GameState {
   );
 }
 
+/** ハンドの合間にチップを補充する (初心者モード用) */
+export function rebuy(prev: GameState, playerId: string, amount: number): GameState {
+  if (!prev.isHandOver) throw new Error("ハンドの途中では補充できません");
+  const state = structuredClone(prev);
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) throw new Error("プレイヤーが見つかりません");
+  player.stack = Math.max(player.stack, amount);
+  if (player.status === "out") player.status = "active";
+  return state;
+}
+
 // ---------- 状態の問い合わせ ----------
 
 export function getPlayerToAct(state: GameState): Player | null {
