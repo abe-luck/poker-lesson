@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { actionSentence, formatChips, MODE_NAMES } from "@/content/ja";
 import { getLegalActions, getPlayerToAct, isGameOver } from "@/engine/game";
-import { currentHand, STRENGTH_LABELS } from "@/guide/guide";
+import { currentHand } from "@/guide/guide";
+import { playerName } from "@/i18n";
+import { useI18n } from "@/i18n/I18nProvider";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useGameStoreHydrated } from "@/components/SettingsHydrator";
 import { useGameSounds } from "./useGameSounds";
@@ -30,6 +31,7 @@ const CPU_DELAY = { beginner: 1100, pro: 600 } as const;
 type Reference = "guide" | "hands" | "rules" | "log" | null;
 
 export function GameScreen() {
+  const { t, href } = useI18n();
   const hydrated = useGameStoreHydrated();
   const storedGame = useGameStore((s) => s.game);
   const game = hydrated ? storedGame : null;
@@ -65,7 +67,7 @@ export function GameScreen() {
       <div className="flex flex-1 flex-col">
         <AppHeader />
         <main className="flex flex-1 items-center justify-center text-muted" aria-busy="true">
-          読み込み中…
+          {t.common.loading}
         </main>
       </div>
     );
@@ -76,9 +78,9 @@ export function GameScreen() {
       <div className="flex flex-1 flex-col">
         <AppHeader />
         <main className="flex flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
-          <p className="text-muted">進行中のゲームがありません。</p>
-          <Link href="/play" className={buttonClass("primary", "lg")}>
-            ゲームを始める
+          <p className="text-muted">{t.game.noGame}</p>
+          <Link href={href("/play")} className={buttonClass("primary", "lg")}>
+            {t.game.startGame}
           </Link>
         </main>
       </div>
@@ -89,14 +91,14 @@ export function GameScreen() {
   const legal = toAct?.isHuman ? getLegalActions(game) : null;
   const lastEntry = game.log.at(-1);
   const lastSentence = lastEntry
-    ? actionSentence(game.players.find((p) => p.id === lastEntry.playerId)?.name ?? "", lastEntry)
+    ? t.actions.sentence(playerName(t, game.players.find((p) => p.id === lastEntry.playerId)!), lastEntry)
     : "";
 
   let foldWarning: string | null = null;
   if (beginner && legal) {
-    if (legal.check) foldWarning = "今はチェックできるので、チップを払わずに次へ進めます。本当にフォールドしますか？";
+    if (legal.check) foldWarning = t.game.foldWarningCheck;
     else if (guide?.strength != null && guide.strength >= 2) {
-      foldWarning = `今の手は「${STRENGTH_LABELS[guide.strength]}」です。フォールドすると、このハンドで出したチップは戻りません。本当にフォールドしますか？`;
+      foldWarning = t.game.foldWarningStrong(t.guide.strengths[guide.strength]);
     }
   }
 
@@ -116,21 +118,21 @@ export function GameScreen() {
   const handInfo =
     guide ??
     (proShowHand && human && (human.status === "active" || human.status === "allin")
-      ? { hand: currentHand(human, game.board), strength: null }
+      ? { hand: currentHand(t, human, game.board), strength: null }
       : null);
 
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader
         compact
-        back={{ href: "/", label: "やめる", onClick: quit }}
+        back={{ href: href("/"), label: t.common.quit, onClick: quit }}
         right={
           <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
               aria-pressed={soundEnabled}
-              aria-label={soundEnabled ? "効果音をオフにする" : "効果音をオンにする"}
-              title={soundEnabled ? "効果音: オン" : "効果音: オフ"}
+              aria-label={soundEnabled ? t.game.soundOff : t.game.soundOn}
+              title={t.game.soundState(soundEnabled)}
               onClick={() => updateSettings({ soundEnabled: !soundEnabled })}
               className="flex size-9 items-center justify-center rounded-lg text-muted hover:bg-background hover:text-foreground"
             >
@@ -141,14 +143,14 @@ export function GameScreen() {
             </button>
             {!beginner && (
               <button type="button" onClick={() => setReference("log")} className={`${headerButton} xl:hidden`}>
-                流れ
+                {t.game.handLog}
               </button>
             )}
             <button type="button" onClick={openHands} className={headerButton}>
-              役一覧
+              {t.common.hands}
             </button>
             <button type="button" onClick={openRules} className={`${headerButton} hidden sm:block`}>
-              ルール
+              {t.common.rules}
             </button>
           </div>
         }
@@ -156,26 +158,22 @@ export function GameScreen() {
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${beginner ? "bg-accent-soft text-accent" : "bg-chip text-muted"}`}
         >
-          {MODE_NAMES[game.mode]}
+          {t.common.modeNames[game.mode]}
         </span>
         {tournament && (
           <span className="hidden shrink-0 text-muted md:inline">
-            トーナメント{" "}
-            <span className="font-medium text-foreground tabular-nums">レベル {blindLevel(game.handNumber - 1) + 1}</span>
-            {levelLeft !== null && (
-              <span className="ml-3">
-                次のレベルまで <span className="font-medium text-foreground tabular-nums">{levelLeft}</span> ハンド
-              </span>
-            )}
+            {t.game.tournament}{" "}
+            <span className="font-medium text-foreground tabular-nums">{t.game.level(blindLevel(game.handNumber - 1) + 1)}</span>
+            {levelLeft !== null && <span className="ml-3 tabular-nums">{t.game.nextLevel(levelLeft)}</span>}
           </span>
         )}
         <span className="hidden shrink-0 text-muted sm:inline">
-          ハンド <span className="font-medium text-foreground tabular-nums">#{game.handNumber}</span>
+          <span className="font-medium text-foreground tabular-nums">{t.common.handNumber(game.handNumber)}</span>
         </span>
         <span className="truncate text-muted">
-          <span className="hidden sm:inline">ブラインド </span>
+          <span className="hidden sm:inline">{t.common.blinds} </span>
           <span className="font-medium text-foreground tabular-nums">
-            {formatChips(game.blinds.small)} / {formatChips(game.blinds.big)}
+            {t.formatChips(game.blinds.small)} / {t.formatChips(game.blinds.big)}
           </span>
         </span>
       </AppHeader>
@@ -207,7 +205,7 @@ export function GameScreen() {
                 />
               ) : (
                 <div className="flex min-h-12 flex-col justify-center gap-0.5">
-                  <span className="text-base font-bold">{toAct?.name} が考えています…</span>
+                  <span className="text-base font-bold">{toAct && t.game.thinking(playerName(t, toAct))}</span>
                   <span className="text-[13px] text-muted">{lastSentence}</span>
                 </div>
               )}
@@ -219,7 +217,7 @@ export function GameScreen() {
         {!beginner && <HandLogSidePanel state={game} />}
       </div>
 
-      <Dialog open={reference === "log"} title="このハンドの流れ" onClose={() => setReference(null)}>
+      <Dialog open={reference === "log"} title={t.game.handLogTitle} onClose={() => setReference(null)}>
         <HandLog state={game} />
       </Dialog>
 
@@ -232,14 +230,14 @@ export function GameScreen() {
         onOpenHands={openHands}
       />
       {guide && (
-        <Dialog open={reference === "guide"} title="ガイド" onClose={() => setReference(null)}>
+        <Dialog open={reference === "guide"} title={t.guide.title} onClose={() => setReference(null)}>
           <GuideDetails state={game} guide={guide} onOpenHands={openHands} onOpenRules={openRules} />
         </Dialog>
       )}
-      <Dialog open={reference === "hands"} title="役一覧" wide onClose={() => setReference(null)}>
+      <Dialog open={reference === "hands"} title={t.meta.titles.hands} wide onClose={() => setReference(null)}>
         <HandRankingList />
       </Dialog>
-      <Dialog open={reference === "rules"} title="ルール説明" wide onClose={() => setReference(null)}>
+      <Dialog open={reference === "rules"} title={t.meta.titles.rules} wide onClose={() => setReference(null)}>
         <RulesContent />
       </Dialog>
     </div>

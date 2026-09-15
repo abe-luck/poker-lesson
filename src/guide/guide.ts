@@ -1,7 +1,7 @@
-import { actionLabel, formatChips, HAND_CATEGORY_NAMES, handName, rankLabel } from "@/content/ja";
 import { compareHands, evaluateBest, HAND_CATEGORY } from "@/engine/evaluator";
 import { getLegalActions, getPlayerToAct, getPotTotal } from "@/engine/game";
 import type { Card, GameState, HandCategory, HandRank, Player, Rank } from "@/engine/types";
+import { handName, playerName, rankLabel, type Dictionary } from "@/i18n";
 
 // ---------- 今の役と手の強さ ----------
 
@@ -11,18 +11,18 @@ export type CurrentHand = {
   keyCards: Card[];
 };
 
-export function currentHand(player: Player, board: readonly Card[]): CurrentHand | null {
+export function currentHand(t: Dictionary, player: Player, board: readonly Card[]): CurrentHand | null {
   if (player.holeCards.length < 2) return null;
 
   if (board.length === 0) {
     const [high, low] = [...player.holeCards].sort((a, b) => b.rank - a.rank);
     return high.rank === low.rank
-      ? { name: `ワンペア（${rankLabel(high.rank)}のペア）`, keyCards: [high, low] }
-      : { name: `ハイカード（${rankLabel(high.rank)}が一番上）`, keyCards: [high] };
+      ? { name: t.hands.preflopPair(rankLabel(high.rank)), keyCards: [high, low] }
+      : { name: t.hands.preflopHigh(rankLabel(high.rank)), keyCards: [high] };
   }
 
   const hand = evaluateBest([...player.holeCards, ...board]);
-  return { name: handName(hand), keyCards: keyCardsOf(hand) };
+  return { name: handName(t, hand), keyCards: keyCardsOf(hand) };
 }
 
 function keyCardsOf(hand: HandRank): Card[] {
@@ -42,7 +42,6 @@ function keyCardsOf(hand: HandRank): Card[] {
   }
 }
 
-export const STRENGTH_LABELS = ["弱い", "ふつう", "強い", "とても強い"] as const;
 export type StrengthLevel = 0 | 1 | 2 | 3;
 
 /** 勝てる見込みを、相手の人数で割った平均と比べて4段階にする */
@@ -68,9 +67,9 @@ export type Recommendation = {
   detail?: string;
 };
 
-const percent = (v: number) => `${Math.round(v * 100)}%`;
+const percent = (v: number) => Math.round(v * 100);
 
-export function recommend(state: GameState, equity: number): Recommendation | null {
+export function recommend(t: Dictionary, state: GameState, equity: number): Recommendation | null {
   const player = getPlayerToAct(state);
   const legal = getLegalActions(state);
   if (!player?.isHuman || !legal) return null;
@@ -78,190 +77,158 @@ export function recommend(state: GameState, equity: number): Recommendation | nu
   const opponents = countOpponents(state, player.id);
   // 相手が多いほど、平均的な勝率は下がるので「強い」の基準も下げる
   const strongLine = Math.min(0.65, Math.max(0.35, 1.8 / (opponents + 1)));
-  const hand = currentHand(player, state.board)?.name ?? "今の手";
-  const chance = `勝てる見込みは約${percent(equity)}`;
+  const hand = currentHand(t, player, state.board)?.name ?? t.explain.currentHandFallback;
+  const chance = t.explain.chance(percent(equity));
 
   if (equity >= strongLine && (legal.bet || legal.raise)) {
-    const label = legal.bet ? "ベット" : "レイズ";
-    return {
-      action: legal.bet ? "bet" : "raise",
-      label,
-      reason: `${hand}で、${chance}と高いためです。${label}してポットを大きくしましょう。`,
-    };
+    const label = legal.bet ? t.actions.bet : t.actions.raise;
+    return { action: legal.bet ? "bet" : "raise", label, reason: t.explain.reasonAggressive(hand, chance, label) };
   }
 
   if (legal.check) {
     return {
       action: "check",
-      label: "チェック",
-      reason:
-        equity * (opponents + 1) < 1
-          ? `チップを払わずに次へ進めます。${hand}で${chance}なので、無理に賭ける必要はありません。`
-          : `チップを払わずに次へ進めます。${hand}で${chance}です。`,
+      label: t.actions.check,
+      reason: equity * (opponents + 1) < 1 ? t.explain.reasonCheckWeak(hand, chance) : t.explain.reasonCheck(hand, chance),
     };
   }
 
   const call = legal.call ?? 0;
   const pot = getPotTotal(state);
   const need = call / (pot + call);
-  const detail = `コールに必要な勝率 = 払う額 ${formatChips(call)} ÷（ポット ${formatChips(pot)} ＋ ${formatChips(call)}）＝ 約${percent(need)}`;
+  const detail = t.explain.potOddsDetail(call, pot, percent(need));
 
   if (equity >= need) {
-    return {
-      action: "call",
-      label: "コール",
-      reason: `${hand}で、${chance}です。コールに必要な勝率（約${percent(need)}）を上回っているためです。`,
-      detail,
-    };
+    return { action: "call", label: t.actions.call, reason: t.explain.reasonCall(hand, chance, percent(need)), detail };
   }
-  return {
-    action: "fold",
-    label: "フォールド",
-    reason: `${hand}で、${chance}です。コールに必要な勝率（約${percent(need)}）に届かないため、降りるのがおすすめです。`,
-    detail,
-  };
+  return { action: "fold", label: t.actions.fold, reason: t.explain.reasonFold(hand, chance, percent(need)), detail };
 }
 
 // ---------- いま起きていること ----------
 
-export function explainSituation(state: GameState, playerId: string): string[] {
-  if (state.isHandOver) return ["ハンドが終わりました。結果を確認して、次のハンドへ進みましょう。"];
+export function explainSituation(t: Dictionary, state: GameState, playerId: string): string[] {
+  if (state.isHandOver) return [t.explain.handOver];
 
   const me = state.players.find((p) => p.id === playerId);
   const lines: string[] = [];
 
   switch (state.street) {
     case "preflop": {
-      lines.push("手札が2枚ずつ配られました。今は手札だけを見て、勝負を続けるかを決める段階です。");
+      lines.push(t.explain.preflop);
       const blind = state.log.find((e) => e.playerId === playerId && (e.type === "smallBlind" || e.type === "bigBlind"));
-      if (blind) {
-        const role = blind.type === "smallBlind" ? "スモールブラインド" : "ビッグブラインド";
-        lines.push(`あなたは${role}として ${formatChips(blind.paid)} を自動で出しています。`);
-      }
+      if (blind) lines.push(t.explain.blindRole(blind.type === "bigBlind", blind.paid));
       break;
     }
     case "flop":
-      lines.push("場に3枚のカードが開きました。手札2枚と場のカードを合わせて、一番強い5枚で役を作ります。");
+      lines.push(t.explain.flop);
       break;
     case "turn":
-      lines.push("場に4枚目のカード（ターン）が開きました。場のカードは残り1枚です。");
+      lines.push(t.explain.turn);
       break;
     case "river":
-      lines.push("最後の5枚目のカード（リバー）が開きました。このベットが終わると、残った人で手札を見せ合います。");
+      lines.push(t.explain.river);
       break;
   }
 
-  if (me?.status === "folded") {
-    lines.push("あなたはこのハンドを降りました。残りの人の勝負を見て、流れを覚えましょう。");
-  } else if (me?.status === "allin") {
-    lines.push("あなたはオールインしています。これ以上チップを出す必要はなく、最後まで勝負に参加します。");
-  }
+  if (me?.status === "folded") lines.push(t.explain.youFolded);
+  else if (me?.status === "allin") lines.push(t.explain.youAllin);
 
   const toAct = getPlayerToAct(state);
   if (toAct && !toAct.isHuman) {
-    lines.push(`${toAct.name} が行動を考えています。`);
+    lines.push(t.explain.cpuThinking(toAct.name));
   } else if (toAct?.isHuman) {
     const legal = getLegalActions(state);
-    lines.push(
-      legal?.check
-        ? "あなたの番です。追加で払う必要がないので、チェックできます。"
-        : `あなたの番です。続けるには ${formatChips(legal?.call ?? 0)} 払ってコールします。`,
-    );
+    lines.push(legal?.check ? t.explain.yourTurnCheck : t.explain.yourTurnCall(legal?.call ?? 0));
   }
   return lines;
 }
 
 /** このストリートの行動の一覧 */
-export function roundFlow(state: GameState): { name: string; text: string; current: boolean }[] {
-  const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
+export function roundFlow(t: Dictionary, state: GameState): { name: string; text: string; current: boolean }[] {
+  const nameOf = (id: string) => {
+    const player = state.players.find((p) => p.id === id);
+    return player ? playerName(t, player) : id;
+  };
   const rows = state.log
     .filter((e) => e.street === state.street)
-    .map((e) => ({ name: nameOf(e.playerId), text: actionLabel(e), current: false }));
+    .map((e) => ({ name: nameOf(e.playerId), text: t.actions.label(e), current: false }));
   const toAct = getPlayerToAct(state);
-  if (toAct) rows.push({ name: toAct.name, text: "考え中", current: true });
+  if (toAct) rows.push({ name: playerName(t, toAct), text: t.game.thinkingFlow, current: true });
   return rows;
 }
 
 // ---------- ハンド後の振り返り ----------
 
-function tiebreakMeaning(category: HandCategory, index: number): string {
-  const kicker = "残りのカード（キッカー）";
+function tiebreakMeaning(t: Dictionary, category: HandCategory, index: number): string {
+  const e = t.explain;
   switch (category) {
     case HAND_CATEGORY.highCard:
     case HAND_CATEGORY.flush:
-      return index === 0 ? "一番大きいカード" : `${index + 1}番目に大きいカード`;
+      return e.nthHighest(index);
     case HAND_CATEGORY.onePair:
-      return index === 0 ? "ペア" : kicker;
+      return index === 0 ? e.pair : e.kicker;
     case HAND_CATEGORY.twoPair:
-      return ["大きい方のペア", "小さい方のペア"][index] ?? kicker;
+      return [e.higherPair, e.lowerPair][index] ?? e.kicker;
     case HAND_CATEGORY.threeOfAKind:
-      return index === 0 ? "3枚そろったカード" : kicker;
+      return index === 0 ? e.threeCards : e.kicker;
     case HAND_CATEGORY.fullHouse:
-      return index === 0 ? "3枚そろったカード" : "2枚そろったカード";
+      return index === 0 ? e.threeCards : e.twoCards;
     case HAND_CATEGORY.fourOfAKind:
-      return index === 0 ? "4枚そろったカード" : kicker;
+      return index === 0 ? e.fourCards : e.kicker;
     default:
-      return "一番上のカード";
+      return e.topCard;
   }
 }
 
 /** 勝者と相手の役を比べた説明 */
-export function compareExplanation(winnerName: string, winner: HandRank, loserName: string, loser: HandRank): string {
-  const wName = HAND_CATEGORY_NAMES[winner.category];
-  const lName = HAND_CATEGORY_NAMES[loser.category];
-  if (winner.category !== loser.category) {
-    return `${winnerName} は${wName}、${loserName} は${lName}でした。${wName}の方が強い役なので、${winnerName} の勝ちです。`;
-  }
+export function compareExplanation(t: Dictionary, winnerName: string, winner: HandRank, loserName: string, loser: HandRank): string {
+  const wName = t.hands.categoryPhrase(winner.category);
+  const lName = t.hands.categoryPhrase(loser.category);
+  if (winner.category !== loser.category) return t.explain.differentCategory(winnerName, wName, loserName, lName);
+
   const index = winner.tiebreak.findIndex((r, i) => r !== loser.tiebreak[i]);
-  if (index < 0) {
-    return `${winnerName} と ${loserName} はどちらも同じ強さの${wName}なので、ポットを山分けしました。`;
-  }
+  if (index < 0) return t.explain.split(winnerName, loserName, wName);
+
   const a = rankLabel(winner.tiebreak[index] as Rank);
   const b = rankLabel(loser.tiebreak[index] as Rank);
-  const lead = index > 0 && winner.category !== HAND_CATEGORY.highCard && winner.category !== HAND_CATEGORY.flush
-    ? "役の数字も同じなので、"
-    : "";
-  return `どちらも${wName}でした。${lead}${tiebreakMeaning(winner.category, index)}で比べると、${a} と ${b} で ${a} の方が強いので、${winnerName} の勝ちです。`;
+  const sameRanks = index > 0 && winner.category !== HAND_CATEGORY.highCard && winner.category !== HAND_CATEGORY.flush;
+  return t.explain.sameCategory(wName, sameRanks, tiebreakMeaning(t, winner.category, index), a, b, winnerName);
 }
 
 export type HandReview = {
   title: string;
   lines: string[];
-  /** 見せ合った人 (勝者が先) */
+  /** 見せ合った人 (勝者が先、次にあなた) */
   showdown: { player: Player; hand: HandRank; won: boolean }[];
   /** あなたの収支 */
   net: number;
 };
 
-export function reviewHand(state: GameState, playerId: string): HandReview | null {
+/** 勝者の見出し (例: 「CPU2 の勝ち」) */
+export function resultTitle(t: Dictionary, state: GameState, winnerIds: string[]): string {
+  const winners = winnerIds.map((id) => state.players.find((p) => p.id === id)!);
+  if (winners.length > 1) return t.result.tie(t.common.list(winners.map((w) => playerName(t, w))));
+  return winners[0].isHuman ? t.result.youWin : t.result.wins(winners[0].name);
+}
+
+export function reviewHand(t: Dictionary, state: GameState, playerId: string): HandReview | null {
   const result = state.result;
   if (!state.isHandOver || !result) return null;
 
   const playerOf = (id: string) => state.players.find((p) => p.id === id)!;
+  const nameOf = (id: string) => playerName(t, playerOf(id));
   const me = playerOf(playerId);
   const mainPot = result.pots[0];
   const winners = mainPot.winnerIds.map(playerOf);
   const payout = result.payouts.find((p) => p.playerId === playerId)?.amount ?? 0;
   const net = payout - me.totalBet;
   const lines: string[] = [];
-
-  const title =
-    winners.length > 1
-      ? `${winners.map((w) => w.name).join(" と ")} で引き分け`
-      : winners[0].id === playerId
-        ? "あなたの勝ち"
-        : `${winners[0].name} の勝ち`;
+  const title = resultTitle(t, state, mainPot.winnerIds);
 
   if (result.showdown.length === 0) {
     const w = winners[0];
-    lines.push(
-      w.id === playerId
-        ? `ほかの全員がフォールドしたので、あなたが手札を見せずにポット ${formatChips(mainPot.amount)} を獲得しました。`
-        : `ほかの全員がフォールドしたので、${w.name} が手札を見せずにポット ${formatChips(mainPot.amount)} を獲得しました。`,
-    );
-    if (me.status === "folded" && me.totalBet > 0) {
-      lines.push(`あなたは途中で降りたため、出したチップ（${formatChips(me.totalBet)}）は戻りません。`);
-    }
+    lines.push(w.id === playerId ? t.explain.foldWinYou(mainPot.amount) : t.explain.foldWin(nameOf(w.id), mainPot.amount));
+    if (me.status === "folded" && me.totalBet > 0) lines.push(t.explain.youLostBets(me.totalBet));
     return { title, lines, showdown: [], net };
   }
 
@@ -269,25 +236,20 @@ export function reviewHand(state: GameState, playerId: string): HandReview | nul
   const mainWinner = winners[0];
   const losers = result.showdown.filter((s) => !mainPot.winnerIds.includes(s.playerId));
   // あなたが負けていればあなたと、そうでなければ一番強かった相手と比べる
-  const opponent =
-    losers.find((s) => s.playerId === playerId) ??
-    [...losers].sort((a, b) => compareHands(b.hand, a.hand))[0];
+  const opponent = losers.find((s) => s.playerId === playerId) ?? [...losers].sort((a, b) => compareHands(b.hand, a.hand))[0];
 
   if (winners.length > 1) {
     const [a, b] = winners;
-    lines.push(compareExplanation(a.name, hands.get(a.id)!, b.name, hands.get(b.id)!));
+    lines.push(compareExplanation(t, nameOf(a.id), hands.get(a.id)!, nameOf(b.id), hands.get(b.id)!));
   } else if (opponent) {
-    lines.push(compareExplanation(mainWinner.name, hands.get(mainWinner.id)!, playerOf(opponent.playerId).name, opponent.hand));
+    lines.push(compareExplanation(t, nameOf(mainWinner.id), hands.get(mainWinner.id)!, nameOf(opponent.playerId), opponent.hand));
   }
 
   result.pots.slice(1).forEach((pot, i) => {
-    const names = pot.winnerIds.map((id) => playerOf(id).name).join(" と ");
-    lines.push(`サイドポット${i + 1}（${formatChips(pot.amount)}）は、オールインした人より多く賭けた人どうしで争い、${names} が獲得しました。`);
+    lines.push(t.explain.sidePot(i + 1, pot.amount, t.common.list(pot.winnerIds.map(nameOf))));
   });
 
-  if (me.status === "folded") {
-    lines.push(`あなたは途中で降りたため、出したチップ（${formatChips(me.totalBet)}）は戻りません。`);
-  }
+  if (me.status === "folded") lines.push(t.explain.youLostBets(me.totalBet));
 
   const showdown = result.showdown
     .map((s) => ({ player: playerOf(s.playerId), hand: s.hand, won: result.payouts.some((p) => p.playerId === s.playerId) }))

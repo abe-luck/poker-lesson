@@ -1,8 +1,11 @@
+"use client";
+
 import type { CSSProperties } from "react";
-import { actionLabel, formatChips, handName, STREET_NAMES } from "@/content/ja";
 import { sameCard } from "@/engine/cards";
 import { getPotTotal } from "@/engine/game";
 import type { GameState, HandRank, Player } from "@/engine/types";
+import { handName, playerName, type Dictionary } from "@/i18n";
+import { useI18n } from "@/i18n/I18nProvider";
 import { StrengthMeter } from "@/components/guide/StrengthMeter";
 import type { Guide } from "@/components/guide/useGuide";
 import { CardBack, CardSlot, PlayingCard } from "./PlayingCard";
@@ -26,27 +29,28 @@ type SeatInfo = {
   reveal: boolean;
 };
 
-function seatInfo(state: GameState, player: Player, index: number): SeatInfo {
+function seatInfo(t: Dictionary, state: GameState, player: Player, index: number): SeatInfo {
   const result = state.result;
   const hand = result?.showdown.find((s) => s.playerId === player.id)?.hand ?? null;
   const payout = result?.payouts.find((p) => p.playerId === player.id)?.amount ?? 0;
   const lastEntry = state.log.findLast((e) => e.playerId === player.id && e.street === state.street);
 
   let label: string | null = null;
-  if (player.status === "out") label = "脱落";
-  else if (state.isHandOver && payout > 0) label = `+${formatChips(payout)}`;
-  else if (state.toActIndex === index) label = "考え中…";
-  else if (player.status === "folded") label = "フォールド";
-  else if (lastEntry) label = actionLabel(lastEntry);
-  else if (player.status === "allin") label = "オールイン";
+  if (player.status === "out") label = t.game.out;
+  else if (state.isHandOver && payout > 0) label = `+${t.formatChips(payout)}`;
+  else if (state.toActIndex === index) label = t.game.thinkingShort;
+  else if (player.status === "folded") label = t.game.folded;
+  else if (lastEntry) label = t.actions.label(lastEntry);
+  else if (player.status === "allin") label = t.game.allin;
 
   return { label, hand, payout, reveal: hand !== null };
 }
 
 function DealerBadge() {
+  const { t } = useI18n();
   return (
     <span
-      title="ディーラー"
+      title={t.common.dealer}
       className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-line bg-white text-[11px] font-bold text-[#1f2328]"
     >
       D
@@ -55,7 +59,8 @@ function DealerBadge() {
 }
 
 function CpuSeat({ state, player, index, style }: { state: GameState; player: Player; index: number; style?: CSSProperties }) {
-  const info = seatInfo(state, player, index);
+  const { t } = useI18n();
+  const info = seatInfo(t, state, player, index);
   const inactive = player.status === "folded" || player.status === "out";
   const toAct = state.toActIndex === index;
 
@@ -72,7 +77,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
             <span className="truncate text-[13px] font-bold md:text-sm">{player.name}</span>
             {state.dealerIndex === index && <DealerBadge />}
           </div>
-          <span className="text-[13px] text-muted tabular-nums md:text-sm">{formatChips(player.stack)}</span>
+          <span className="text-[13px] text-muted tabular-nums md:text-sm">{t.formatChips(player.stack)}</span>
         </div>
         {info.reveal ? (
           <div className="flex gap-0.5">
@@ -90,7 +95,7 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
           )
         )}
       </div>
-      {info.hand && <span className="text-xs font-medium">{handName(info.hand)}</span>}
+      {info.hand && <span className="text-xs font-medium">{handName(t, info.hand)}</span>}
       {info.label && (
         <span
           className={`self-start rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
@@ -105,7 +110,8 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
 }
 
 function HumanSeat({ state, player, index, guide }: { state: GameState; player: Player; index: number; guide?: HandInfo | null }) {
-  const info = seatInfo(state, player, index);
+  const { t } = useI18n();
+  const info = seatInfo(t, state, player, index);
   const toAct = state.toActIndex === index;
   // 初心者モードのプレイ中は今の役を、ハンド終了後はショーダウンの役を強調
   const liveHand = !state.isHandOver ? guide?.hand : null;
@@ -134,15 +140,15 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-bold">{player.name}</span>
+            <span className="text-[15px] font-bold">{playerName(t, player)}</span>
             {state.dealerIndex === index && <DealerBadge />}
           </div>
-          <span className="text-[15px] text-muted tabular-nums">{formatChips(player.stack)}</span>
+          <span className="text-[15px] text-muted tabular-nums">{t.formatChips(player.stack)}</span>
         </div>
-        {info.hand && <span className="text-base font-bold">{handName(info.hand)}</span>}
+        {info.hand && <span className="text-base font-bold">{handName(t, info.hand)}</span>}
         {liveHand && (
           <>
-            <span className="text-xs text-muted">今の役</span>
+            <span className="text-xs text-muted">{t.game.currentHand}</span>
             <span className="text-base leading-snug font-bold sm:text-[17px]">{liveHand.name}</span>
             {guide?.strength != null && <StrengthMeter level={guide.strength} compact />}
           </>
@@ -153,7 +159,7 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
               info.payout > 0 ? "bg-felt text-white" : toAct ? "bg-accent-soft text-accent" : "bg-chip text-muted"
             }`}
           >
-            {toAct ? "あなたの番です" : info.label}
+            {toAct ? t.game.yourTurn : info.label}
           </span>
         )}
       </div>
@@ -162,6 +168,7 @@ function HumanSeat({ state, player, index, guide }: { state: GameState; player: 
 }
 
 function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) {
+  const { t } = useI18n();
   const winningCards = state.isHandOver
     ? state.result?.showdown
         .filter((s) => state.result?.pots[0]?.winnerIds.includes(s.playerId))
@@ -171,7 +178,7 @@ function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) 
   return (
     <div className="flex h-[168px] flex-col items-center justify-center gap-2 rounded-3xl bg-felt px-3 sm:gap-3 shadow-[inset_0_0_0_8px_var(--felt-rim)] sm:h-[230px] md:absolute md:inset-x-[13%] md:top-[19%] md:bottom-[27%] md:h-auto md:rounded-full md:shadow-[inset_0_0_0_12px_var(--felt-rim)]">
       <div className="rounded-full bg-black/22 px-4 py-1.5 text-sm font-bold text-white tabular-nums sm:text-[15px]">
-        ポット {formatChips(getPotTotal(state))}
+        {t.game.pot(getPotTotal(state))}
       </div>
       <div className="flex gap-1.5 sm:gap-2">
         {Array.from({ length: 5 }, (_, i) => {
@@ -187,7 +194,7 @@ function Board({ state, guide }: { state: GameState; guide?: HandInfo | null }) 
           );
         })}
       </div>
-      <div className="text-[13px] text-white/85">{STREET_NAMES[state.street]}</div>
+      <div className="text-[13px] text-white/85">{t.common.streetNames[state.street]}</div>
     </div>
   );
 }

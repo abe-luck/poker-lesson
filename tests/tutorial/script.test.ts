@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "@/engine/game";
+import { en } from "@/i18n/en";
+import { ja } from "@/i18n/ja";
 import { nextScriptedAction, startTutorialHand, TUTORIAL_HANDS } from "@/tutorial/script";
 
 describe("チュートリアルの台本", () => {
+  it.each([ja, en])("説明文 ($locale) の数が台本と合っている", (t) => {
+    expect(t.tutorial.hands).toHaveLength(TUTORIAL_HANDS.length);
+    TUTORIAL_HANDS.forEach((hand, i) => {
+      expect(t.tutorial.hands[i].prompts).toHaveLength(hand.prompts.length);
+      expect(t.tutorial.hands[i].intro.length).toBeGreaterThan(0);
+      expect(t.tutorial.hands[i].outro.length).toBeGreaterThan(0);
+    });
+  });
+
   it.each(TUTORIAL_HANDS.map((hand, i) => [i + 1, hand] as const))("ハンド %i: 台本どおりに進み、あなたが勝つ", (_, hand) => {
     let state = startTutorialHand(hand);
     const counts: Record<string, number> = {};

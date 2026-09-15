@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatChips, handName } from "@/content/ja";
 import { isGameOver } from "@/engine/game";
 import type { GameState } from "@/engine/types";
+import { resultTitle } from "@/guide/guide";
+import { handName, playerName } from "@/i18n";
+import { useI18n } from "@/i18n/I18nProvider";
 import { Button, buttonClass } from "@/components/ui/Button";
 
 type Props = {
@@ -15,31 +17,28 @@ type Props = {
 };
 
 export function HandResultBar({ state, onNext, onRebuy, onRestart, tournament = false }: Props) {
+  const { t, href } = useI18n();
   const result = state.result;
   if (!result) return null;
 
-  const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
+  const nameOf = (id: string) => {
+    const player = state.players.find((p) => p.id === id);
+    return player ? playerName(t, player) : id;
+  };
   const handOf = (id: string) => result.showdown.find((s) => s.playerId === id)?.hand;
   const human = state.players.find((p) => p.isHuman)!;
-  const mainWinners = result.pots[0]?.winnerIds ?? [];
   const humanWon = result.payouts.some((p) => p.playerId === human.id);
-
-  const title =
-    mainWinners.length > 1
-      ? `${mainWinners.map(nameOf).join(" と ")} で引き分け`
-      : mainWinners[0] === human.id
-        ? "あなたの勝ち"
-        : `${nameOf(mainWinners[0])} の勝ち`;
+  const title = resultTitle(t, state, result.pots[0]?.winnerIds ?? []);
 
   const details = result.pots.map((pot, i) => {
-    const potName = result.pots.length > 1 ? (i === 0 ? "メインポット" : `サイドポット${i}`) : "ポット";
+    const potName = result.pots.length > 1 ? (i === 0 ? t.result.mainPot : t.result.sidePot(i)) : t.result.pot;
     const winners = pot.winnerIds
       .map((id) => {
         const hand = handOf(id);
-        return hand ? `${nameOf(id)}（${handName(hand)}）` : nameOf(id);
+        return hand ? t.result.withHand(nameOf(id), handName(t, hand)) : nameOf(id);
       })
-      .join("・");
-    return `${potName} ${formatChips(pot.amount)} → ${winners}`;
+      .join(t.result.separator);
+    return t.result.potLine(potName, pot.amount, winners);
   });
 
   const over = isGameOver(state);
@@ -48,11 +47,11 @@ export function HandResultBar({ state, onNext, onRebuy, onRestart, tournament = 
   const place = state.players.filter((p) => p.stack > 0).length + 1;
   const gameOverMessage = humanBusted
     ? tournament
-      ? `${place}位で終了しました`
-      : "チップがなくなりました"
+      ? t.result.place(place)
+      : t.result.busted
     : tournament
-      ? "優勝しました！"
-      : "全員に勝ちました！";
+      ? t.result.champion
+      : t.result.beatEveryone;
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
@@ -63,31 +62,31 @@ export function HandResultBar({ state, onNext, onRebuy, onRestart, tournament = 
             {d}
           </span>
         ))}
-        {result.showdown.length === 0 && <span className="text-[13px] text-muted">ほかの全員がフォールドしました</span>}
+        {result.showdown.length === 0 && <span className="text-[13px] text-muted">{t.result.everyoneFolded}</span>}
       </div>
 
       <div className="flex flex-wrap gap-2">
         {!over && (
           <Button variant="primary" size="lg" onClick={onNext} autoFocus>
-            次のハンドへ
+            {t.result.nextHand}
           </Button>
         )}
         {over && humanBusted && state.mode === "beginner" && (
           <Button variant="primary" size="lg" onClick={onRebuy} autoFocus>
-            チップを補充して続ける
+            {t.result.rebuy}
           </Button>
         )}
         {over && (humanBusted ? state.mode === "pro" : true) && (
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-bold">{gameOverMessage}</span>
             <Button variant="primary" size="lg" onClick={onRestart} autoFocus>
-              もう一度遊ぶ
+              {t.result.playAgain}
             </Button>
           </div>
         )}
         {over && (
-          <Link href="/" className={buttonClass("secondary", "lg")}>
-            トップに戻る
+          <Link href={href("/")} className={buttonClass("secondary", "lg")}>
+            {t.common.backToTop}
           </Link>
         )}
       </div>

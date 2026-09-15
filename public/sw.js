@@ -1,12 +1,13 @@
 // Poker Lesson のサービスワーカー: 一度開いたあとはオフラインでも遊べるようにする。
 // ゲームの処理はすべてブラウザ内で行うので、ページと静的ファイルを保存しておけば動く。
 
-const VERSION = "v1";
+const VERSION = "v2";
 const PAGE_CACHE = `pages-${VERSION}`;
 const ASSET_CACHE = `assets-${VERSION}`;
 
 /** インストール時に保存しておくページ */
-const PAGES = ["/", "/play", "/play/setup", "/play/game", "/tutorial", "/rules", "/hands", "/stats", "/settings"];
+const ROUTES = ["/", "/play", "/play/setup", "/play/game", "/tutorial", "/rules", "/hands", "/stats", "/settings"];
+const PAGES = [...ROUTES, ...ROUTES.map((path) => (path === "/" ? "/en" : `/en${path}`))];
 
 /** ページの HTML から、そのページが使う /_next/static のファイルを取り出す */
 function assetUrls(html) {
@@ -74,7 +75,8 @@ self.addEventListener("fetch", (event) => {
           if (response.ok) cache.put(url.pathname, response.clone());
           return response;
         } catch {
-          return (await cache.match(url.pathname)) ?? (await cache.match("/")) ?? Response.error();
+          const home = url.pathname === "/en" || url.pathname.startsWith("/en/") ? "/en" : "/";
+          return (await cache.match(url.pathname)) ?? (await cache.match(home)) ?? Response.error();
         }
       })(),
     );

@@ -1,9 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { actionLabel, handName } from "@/content/ja";
 import { cardToString } from "@/engine/cards";
-import type { GameState, Mode, Street } from "@/engine/types";
-import { reviewHand } from "@/guide/guide";
+import type { GameState, HandCategory, LogEntry, Mode } from "@/engine/types";
 import { safeStorage } from "@/lib/storage";
 
 export const STATS_KEY = "poker.stats.v1";
@@ -23,6 +21,9 @@ export type ModeStats = {
   biggestWin: number;
 };
 
+type HistoryPlayer = { id: string; name: string; isHuman: boolean };
+
+/** 履歴は表示する言語が変わっても訳せるように、文章ではなくデータで保存する */
 export type HistoryEntry = {
   id: string;
   playedAt: number;
@@ -31,10 +32,11 @@ export type HistoryEntry = {
   holeCards: string;
   board: string;
   net: number;
-  title: string;
+  /** メインポットの勝者 */
+  winners: HistoryPlayer[];
   /** ショーダウンした場合のあなたの役 */
-  handName: string | null;
-  log: { street: Street; name: string; text: string }[];
+  hand: { category: HandCategory; tiebreak: number[] } | null;
+  log: (Pick<LogEntry, "street" | "type" | "paid" | "total"> & { player: HistoryPlayer })[];
 };
 
 const EMPTY: ModeStats = { hands: 0, won: 0, net: 0, vpip: 0, pfr: 0, showdowns: 0, showdownsWon: 0, biggestWin: 0 };
@@ -55,7 +57,10 @@ export function summarizeHand(state: GameState, now = Date.now()): { delta: Mode
   const net = payout - human.totalBet;
   const preflop = state.log.filter((e) => e.street === "preflop" && e.playerId === human.id);
   const showdown = state.result.showdown.find((s) => s.playerId === human.id);
-  const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
+  const playerOf = (id: string): HistoryPlayer => {
+    const p = state.players.find((x) => x.id === id)!;
+    return { id: p.id, name: p.name, isHuman: p.isHuman };
+  };
 
   return {
     delta: {
@@ -76,9 +81,9 @@ export function summarizeHand(state: GameState, now = Date.now()): { delta: Mode
       holeCards: human.holeCards.map(cardToString).join(" "),
       board: state.board.map(cardToString).join(" "),
       net,
-      title: reviewHand(state, human.id)?.title ?? "",
-      handName: showdown ? handName(showdown.hand) : null,
-      log: state.log.map((e) => ({ street: e.street, name: nameOf(e.playerId), text: actionLabel(e) })),
+      winners: state.result.pots[0].winnerIds.map(playerOf),
+      hand: showdown ? { category: showdown.hand.category, tiebreak: showdown.hand.tiebreak } : null,
+      log: state.log.map((e) => ({ street: e.street, type: e.type, paid: e.paid, total: e.total, player: playerOf(e.playerId) })),
     },
   };
 }
@@ -114,6 +119,16 @@ export const useStatsStore = create<StatsStore>()(
       },
       reset: () => set({ stats: { beginner: EMPTY, pro: EMPTY }, history: [] }),
     }),
-    { name: STATS_KEY, storage: safeStorage, skipHydration: true },
+    {
+      name: STATS_KEY,
+      storage: safeStorage,
+      skipHydration: true,
+      version: 1,
+      // v0 の履歴は日本語の文章で保存していたため引き継げない。成績の数値は残す
+      migrate: (persisted, version) => {
+        const saved = persisted as Partial<StatsStore>;
+        return version < 1 ? { ...saved, history: [] } : saved;
+      },
+    },
   ),
 );

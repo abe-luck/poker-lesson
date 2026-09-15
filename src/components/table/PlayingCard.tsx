@@ -1,5 +1,10 @@
-import { rankLabel, SUIT_NAMES, SUIT_SYMBOLS } from "@/content/ja";
-import type { Card } from "@/engine/types";
+"use client";
+
+import type { Card, Suit } from "@/engine/types";
+import { rankLabel } from "@/i18n";
+import { useI18n } from "@/i18n/I18nProvider";
+
+const SUIT_SYMBOLS: Record<Suit, string> = { s: "♠", h: "♥", d: "♦", c: "♣" };
 
 export type CardSize = "sm" | "md" | "lg";
 
@@ -31,10 +36,11 @@ const SUIT_COLOR: Record<Card["suit"], string> = {
 
 /** animate: テーブルに配られたときだけ動きをつける (一覧や履歴では付けない) */
 export function PlayingCard({ card, size = "md", highlight = false, animate = false }: { card: Card; size?: CardSize; highlight?: boolean; animate?: boolean }) {
+  const { t } = useI18n();
   return (
     <div
       role="img"
-      aria-label={`${SUIT_NAMES[card.suit]}の${rankLabel(card.rank)}`}
+      aria-label={t.cards.cardLabel(t.cards.suitNames[card.suit], rankLabel(card.rank))}
       className={`${animate ? "animate-deal " : ""}flex shrink-0 flex-col justify-between border border-[#d9d9d4] bg-white font-bold shadow-[0_1px_3px_rgba(0,0,0,.2)] ${box[size]} ${
         SUIT_COLOR[card.suit]
       } ${highlight ? "outline-3 outline-offset-2 outline-[#8fb3ff]" : ""}`}

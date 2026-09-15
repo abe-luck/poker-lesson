@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatChips } from "@/content/ja";
 import { getPotTotal } from "@/engine/game";
 import type { Action, GameState, LegalActions } from "@/engine/types";
+import { useI18n } from "@/i18n/I18nProvider";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 
@@ -25,6 +25,8 @@ function Caption({ show, children }: { show: boolean; children: string }) {
 
 /** 親側で key を変えて、自分の番ごとに額をリセットする */
 export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer }: Props) {
+  const { t } = useI18n();
+  const formatChips = t.formatChips;
   const range = legal.bet ?? legal.raise;
   const kind = legal.bet ? "bet" : "raise";
   const [amount, setAmount] = useState(range?.min ?? 0);
@@ -42,10 +44,10 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
   // 上乗せ額 = コール後のポットに対する割合
   const presets = range
     ? [
-        { label: "1/3 ポット", value: clamp(state.currentBet + (pot + toCall) / 3) },
-        { label: "1/2 ポット", value: clamp(state.currentBet + (pot + toCall) / 2) },
-        { label: "ポット", value: clamp(state.currentBet + pot + toCall) },
-        { label: "オールイン", value: range.max },
+        { label: t.actionBar.presets.third, value: clamp(state.currentBet + (pot + toCall) / 3) },
+        { label: t.actionBar.presets.half, value: clamp(state.currentBet + (pot + toCall) / 2) },
+        { label: t.actionBar.presets.pot, value: clamp(state.currentBet + pot + toCall) },
+        { label: t.actions.allin, value: range.max },
       ]
     : [];
 
@@ -66,26 +68,26 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const betLabel = kind === "bet" ? "ベット" : "レイズ";
+  const betLabel = kind === "bet" ? t.actions.bet : t.actions.raise;
   const isAllin = range !== null && amount === range.max;
   const requiredEquity = legal.call !== null ? Math.round((legal.call / (pot + legal.call)) * 100) : null;
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
       <div className="flex flex-col gap-0.5">
-        <span className="text-base font-bold">あなたの番です</span>
+        <span className="text-base font-bold">{t.game.yourTurn}</span>
         <span className="text-[13px] text-muted">
-          {legal.call !== null ? `続けるには ${formatChips(legal.call)} 払ってコールします` : "チェックして様子を見ることができます"}
+          {legal.call !== null ? t.actionBar.toCall(legal.call) : t.actionBar.canCheck}
         </span>
         {timer && (
-          <div className="mt-1.5 flex max-w-[260px] items-center gap-2" role="timer" aria-label={`残り ${timer.remaining} 秒`}>
+          <div className="mt-1.5 flex max-w-[260px] items-center gap-2" role="timer" aria-label={t.actionBar.timerLabel(timer.remaining)}>
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-border">
               <div
                 className={`h-1 rounded-full transition-[width] duration-300 ease-linear ${timer.remaining <= 5 ? "bg-danger" : "bg-accent"}`}
                 style={{ width: `${(timer.remaining / timer.total) * 100}%` }}
               />
             </div>
-            <span className={`text-xs tabular-nums ${timer.remaining <= 5 ? "font-bold text-danger" : "text-muted"}`}>残り {timer.remaining}秒</span>
+            <span className={`text-xs tabular-nums ${timer.remaining <= 5 ? "font-bold text-danger" : "text-muted"}`}>{t.actionBar.timeLeft(timer.remaining)}</span>
           </div>
         )}
       </div>
@@ -93,23 +95,23 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <div className="flex flex-col gap-1">
-            <Button variant="danger" onClick={fold} className="sm:w-36" aria-keyshortcuts="F" title="フォールド (F)">
-              フォールド
+            <Button variant="danger" onClick={fold} className="sm:w-36" aria-keyshortcuts="F" title={`${t.actions.fold} (F)`}>
+              {t.actions.fold}
             </Button>
-            <Caption show={beginner}>このハンドを降ります</Caption>
+            <Caption show={beginner}>{t.actionBar.captionFold}</Caption>
           </div>
           <div className="flex flex-col gap-1">
             {legal.check ? (
-              <Button variant="primary" onClick={() => onAct({ type: "check" })} className="sm:w-36" aria-keyshortcuts="C" title="チェック (C)">
-                チェック
+              <Button variant="primary" onClick={() => onAct({ type: "check" })} className="sm:w-36" aria-keyshortcuts="C" title={`${t.actions.check} (C)`}>
+                {t.actions.check}
               </Button>
             ) : (
-              <Button variant="primary" onClick={() => onAct({ type: "call" })} className="sm:w-36" aria-keyshortcuts="C" title="コール (C)">
-                {shortCall ? "オールイン" : "コール"} {formatChips(toCall)}
+              <Button variant="primary" onClick={() => onAct({ type: "call" })} className="sm:w-36" aria-keyshortcuts="C" title={`${t.actions.call} (C)`}>
+                {shortCall ? t.actions.allin : t.actions.call} {formatChips(toCall)}
               </Button>
             )}
-            <Caption show={beginner}>{legal.check ? "何も出さずに次へ進みます" : `${formatChips(legal.call ?? 0)} 払って続けます`}</Caption>
-            <Caption show={!beginner && !!showPotOdds && requiredEquity !== null}>{`必要な勝率 ${requiredEquity}%`}</Caption>
+            <Caption show={beginner}>{legal.check ? t.actionBar.captionCheck : t.actionBar.captionCall(legal.call ?? 0)}</Caption>
+            <Caption show={!beginner && !!showPotOdds && requiredEquity !== null}>{t.actionBar.requiredEquity(requiredEquity ?? 0)}</Caption>
           </div>
         </div>
 
@@ -134,7 +136,7 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
             <div className="flex items-center gap-3">
               <input
                 type="range"
-                aria-label={`${betLabel}額`}
+                aria-label={t.actionBar.amountLabel(betLabel)}
                 min={range.min}
                 max={range.max}
                 step={1}
@@ -146,11 +148,11 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
                 className="min-w-0 flex-1 accent-(--accent)"
               />
               <Button variant="secondary" onClick={() => onAct({ type: kind, amount })} className="w-36 shrink-0" aria-keyshortcuts="R" title={`${betLabel} (R)`}>
-                {isAllin ? "オールイン" : betLabel} {formatChips(amount)}
+                {isAllin ? t.actions.allin : betLabel} {formatChips(amount)}
               </Button>
             </div>
             <Caption show={beginner}>
-              {kind === "bet" ? `最初に賭けます（${formatChips(range.min)} 以上）` : `${formatChips(range.min)} 以上に上げます`}
+              {kind === "bet" ? t.actionBar.captionBet(range.min) : t.actionBar.captionRaise(range.min)}
             </Caption>
           </div>
         )}
@@ -158,20 +160,20 @@ export function ActionBar({ state, legal, onAct, foldWarning, showPotOdds, timer
 
       <Dialog
         open={confirmingFold}
-        title="フォールドしますか？"
+        title={t.actionBar.confirmFoldTitle}
         onClose={() => setConfirmingFold(false)}
         footer={
           <>
             <Button size="lg" onClick={() => setConfirmingFold(false)}>
-              やめる
+              {t.common.cancel}
             </Button>
             {legal.check && (
               <Button size="lg" onClick={() => onAct({ type: "check" })}>
-                チェックする
+                {t.actionBar.checkInstead}
               </Button>
             )}
             <Button variant="danger" size="lg" onClick={() => onAct({ type: "fold" })}>
-              フォールドする
+              {t.actionBar.foldAnyway}
             </Button>
           </>
         }

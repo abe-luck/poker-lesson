@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, type ReactNode } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Props = {
   open: boolean;
@@ -13,6 +14,7 @@ type Props = {
 
 export function Dialog({ open, title, onClose, children, footer, wide }: Props) {
   const titleId = useId();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -36,7 +38,7 @@ export function Dialog({ open, title, onClose, children, footer, wide }: Props) 
           <h2 id={titleId} className="text-lg font-bold">
             {title}
           </h2>
-          <button type="button" onClick={onClose} aria-label="閉じる" className="-mr-2 flex size-10 items-center justify-center rounded-lg text-muted hover:bg-background hover:text-foreground">
+          <button type="button" onClick={onClose} aria-label={t.common.close} className="-mr-2 flex size-10 items-center justify-center rounded-lg text-muted hover:bg-background hover:text-foreground">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden>
               <path d="m5 5 10 10M15 5 5 15" />
             </svg>

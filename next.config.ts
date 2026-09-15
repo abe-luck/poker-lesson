@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 日本語 (/) と英語 (/en) でルートレイアウトが分かれているため、共通の 404 ページを使う
+  experimental: { globalNotFound: true },
   async headers() {
     return [
       {

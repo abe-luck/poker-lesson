@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { ReactNode } from "react";
 
 export function ChevronLeftIcon() {
@@ -26,6 +29,7 @@ type Props = {
 };
 
 export function AppHeader({ back, children, right, compact }: Props) {
+  const { href } = useI18n();
   return (
     <header
       className={`flex shrink-0 items-center justify-between gap-3 border-b border-border bg-surface px-4 sm:px-6 ${compact ? "h-14" : "h-16"}`}
@@ -37,7 +41,7 @@ export function AppHeader({ back, children, right, compact }: Props) {
             <span>{back.label}</span>
           </Link>
         ) : (
-          <Link href="/" className="flex items-center gap-2.5 text-lg font-bold">
+          <Link href={href("/")} className="flex items-center gap-2.5 text-lg font-bold">
             <LogoMark />
             Poker Lesson
           </Link>

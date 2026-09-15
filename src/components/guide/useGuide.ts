@@ -3,6 +3,7 @@
 import { estimateEquity } from "@/ai/equity";
 import { cardToString, parseCards, seededRng } from "@/engine/cards";
 import type { GameState } from "@/engine/types";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   countOpponents,
   currentHand,
@@ -46,6 +47,7 @@ function cachedEquity(key: string, opponents: number): number {
 
 /** 初心者モードのガイド情報。プロモードや観戦中は null を返す部分がある */
 export function useGuide(game: GameState | null): Guide | null {
+  const { t } = useI18n();
   const human = game?.players.find((p) => p.isHuman) ?? null;
   const contending = human !== null && (human.status === "active" || human.status === "allin");
   const holeKey = human?.holeCards.map(cardToString).join(" ") ?? "";
@@ -59,11 +61,11 @@ export function useGuide(game: GameState | null): Guide | null {
   if (!game || !human || game.mode !== "beginner") return null;
 
   return {
-    hand: contending ? currentHand(human, game.board) : null,
+    hand: contending ? currentHand(t, human, game.board) : null,
     equity,
     strength: equity === null ? null : strengthLevel(equity, opponents),
-    recommendation: equity === null ? null : recommend(game, equity),
-    situation: explainSituation(game, human.id),
-    flow: roundFlow(game),
+    recommendation: equity === null ? null : recommend(t, game, equity),
+    situation: explainSituation(t, game, human.id),
+    flow: roundFlow(t, game),
   };
 }

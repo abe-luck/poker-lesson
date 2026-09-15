@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { parseCards } from "@/engine/cards";
+import { localePath, type Locale } from "@/i18n";
+import { useI18n } from "@/i18n/I18nProvider";
 import { playSound } from "@/lib/sound";
 import { clearAppData } from "@/lib/storage";
-import { DEFAULT_SETTINGS, SETTINGS_KEY, useSettingsStore, type Motion, type Theme, type Volume } from "@/store/settingsStore";
+import { SETTINGS_KEY, useSettingsStore, type Motion, type Theme, type Volume } from "@/store/settingsStore";
 import { SESSION_KEY, useGameStore } from "@/store/gameStore";
 import { STATS_KEY, useStatsStore } from "@/store/statsStore";
 import { PlayingCard } from "@/components/table/PlayingCard";
@@ -14,9 +17,13 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Row, RowGroup, Segmented } from "@/components/ui/Form";
 import { Switch } from "@/components/ui/Switch";
 
-const THEMES = { light: "ライト", dark: "ダーク", system: "端末に合わせる" } satisfies Record<Theme, string>;
-const MOTIONS = { normal: "通常", short: "短め", none: "なし" } satisfies Record<Motion, string>;
-const VOLUMES = { low: "小", medium: "中", high: "大" } satisfies Record<Volume, string>;
+const THEMES: Theme[] = ["light", "dark", "system"];
+const MOTIONS: Motion[] = ["normal", "short", "none"];
+const VOLUMES: Volume[] = ["low", "medium", "high"];
+const LANGUAGES: { locale: Locale; label: string }[] = [
+  { locale: "ja", label: "日本語" },
+  { locale: "en", label: "English" },
+];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -28,6 +35,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function SettingsScreen() {
+  const { t, locale, href } = useI18n();
+  const s = t.settings;
+  const router = useRouter();
   const settings = useSettingsStore();
   const [confirming, setConfirming] = useState(false);
   const [cleared, setCleared] = useState(false);
@@ -43,42 +53,56 @@ export function SettingsScreen() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <AppHeader back={{ href: "/", label: "戻る" }} />
+      <AppHeader back={{ href: href("/"), label: t.common.back }} />
       <main className="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-4 py-8 sm:py-10">
-        <h1 className="text-[28px] font-bold">設定</h1>
+        <h1 className="text-[28px] font-bold">{s.title}</h1>
 
-        <Section title="表示">
-          <Row label="テーマ">
-            <Segmented label="テーマ" options={Object.keys(THEMES) as Theme[]} value={settings.theme} format={(v) => THEMES[v]} onChange={(theme) => settings.update({ theme })} />
+        <Section title={s.display}>
+          <Row label={s.language}>
+            <Segmented
+              label={s.language}
+              options={LANGUAGES}
+              value={LANGUAGES.find((l) => l.locale === locale)!}
+              format={(l) => l.label}
+              equals={(a, b) => a.locale === b.locale}
+              onChange={(l) => router.push(localePath(l.locale, "/settings"))}
+            />
           </Row>
-          <Row label="4色デッキ" sub="♦ を青、♣ を緑で表示して見分けやすくします">
+          <Row label={s.theme}>
+            <Segmented label={s.theme} options={THEMES} value={settings.theme} format={(v) => s.themes[v]} onChange={(theme) => settings.update({ theme })} />
+          </Row>
+          <Row label={s.fourColor} sub={s.fourColorSub}>
             <div className="flex items-center gap-4">
               <div className="flex gap-1" aria-hidden>
                 {parseCards("As Ah Ad Ac").map((card) => (
                   <PlayingCard key={card.suit} card={card} size="sm" />
                 ))}
               </div>
-              <Switch label="4色デッキ" checked={settings.fourColorDeck} onChange={(fourColorDeck) => settings.update({ fourColorDeck })} />
+              <Switch label={s.fourColor} checked={settings.fourColorDeck} onChange={(fourColorDeck) => settings.update({ fourColorDeck })} />
             </div>
           </Row>
-          <Row label="アニメーション" sub="端末の「視差効果を減らす」がオンのときは動きを止めます">
-            <Segmented label="アニメーション" options={Object.keys(MOTIONS) as Motion[]} value={settings.motion} format={(v) => MOTIONS[v]} onChange={(motion) => settings.update({ motion })} />
+          <Row label={s.motion} sub={s.motionSub}>
+            <Segmented label={s.motion} options={MOTIONS} value={settings.motion} format={(v) => s.motions[v]} onChange={(motion) => settings.update({ motion })} />
           </Row>
         </Section>
 
-        <Section title="効果音">
-          <Row label="効果音" sub="ゲーム画面のスピーカーボタンからも切り替えられます">
-            <Switch label="効果音" checked={settings.soundEnabled} onChange={(soundEnabled) => {
-              settings.update({ soundEnabled });
-              if (soundEnabled) playSound("turn", settings.volume);
-            }} />
+        <Section title={s.sound}>
+          <Row label={s.sound} sub={s.soundSub}>
+            <Switch
+              label={s.sound}
+              checked={settings.soundEnabled}
+              onChange={(soundEnabled) => {
+                settings.update({ soundEnabled });
+                if (soundEnabled) playSound("turn", settings.volume);
+              }}
+            />
           </Row>
-          <Row label="音量">
+          <Row label={s.volume}>
             <Segmented
-              label="音量"
-              options={Object.keys(VOLUMES) as Volume[]}
+              label={s.volume}
+              options={VOLUMES}
               value={settings.volume}
-              format={(v) => VOLUMES[v]}
+              format={(v) => s.volumes[v]}
               onChange={(volume) => {
                 settings.update({ volume });
                 if (settings.soundEnabled) playSound("chips", volume);
@@ -87,19 +111,19 @@ export function SettingsScreen() {
           </Row>
         </Section>
 
-        <Section title="ヒント">
-          <Row label="初心者モードで、おすすめを表示">
-            <Switch label="初心者モードで、おすすめを表示" checked={settings.showRecommendation} onChange={(showRecommendation) => settings.update({ showRecommendation })} />
+        <Section title={s.hints}>
+          <Row label={s.showRecommendation}>
+            <Switch label={s.showRecommendation} checked={settings.showRecommendation} onChange={(showRecommendation) => settings.update({ showRecommendation })} />
           </Row>
-          <Row label="プロモードで、今の役を表示">
-            <Switch label="プロモードで、今の役を表示" checked={settings.proShowHand} onChange={(proShowHand) => settings.update({ proShowHand })} />
+          <Row label={s.proShowHand}>
+            <Switch label={s.proShowHand} checked={settings.proShowHand} onChange={(proShowHand) => settings.update({ proShowHand })} />
           </Row>
         </Section>
 
-        <Section title="データ">
-          <Row label="成績・履歴・設定を消去" sub={cleared ? "消去しました" : "この操作は取り消せません"}>
+        <Section title={s.data}>
+          <Row label={s.clear} sub={cleared ? s.cleared : s.irreversible}>
             <Button variant="danger" onClick={() => setConfirming(true)}>
-              消去する
+              {s.clearButton}
             </Button>
           </Row>
         </Section>
@@ -107,22 +131,20 @@ export function SettingsScreen() {
 
       <Dialog
         open={confirming}
-        title="データを消去しますか？"
+        title={s.confirmTitle}
         onClose={() => setConfirming(false)}
         footer={
           <>
             <Button size="lg" onClick={() => setConfirming(false)}>
-              やめる
+              {t.common.cancel}
             </Button>
             <Button variant="danger" size="lg" onClick={clearData}>
-              消去する
+              {s.clearButton}
             </Button>
           </>
         }
       >
-        <p className="text-[15px] leading-[1.8]">
-          成績、ハンド履歴、途中のゲーム、設定をすべて消して、最初の状態（テーマ: {THEMES[DEFAULT_SETTINGS.theme]}、効果音: オフ）に戻します。
-        </p>
+        <p className="text-[15px] leading-[1.8]">{s.confirmBody}</p>
       </Dialog>
     </div>
   );
