@@ -257,6 +257,8 @@ flowchart TB
 
 ### 7.3 主なデータ型 (抜粋)
 
+> 実装済みの正式な型は [src/engine/types.ts](../src/engine/types.ts)。下は設計時の概略で、実装では `hasActed` (最後のフルレイズ以降に行動したか)、`isHandOver`、`result` などを追加している。
+
 ```ts
 type Suit = 's' | 'h' | 'd' | 'c';
 type Rank = 2|3|4|5|6|7|8|9|10|11|12|13|14; // 11=J … 14=A
