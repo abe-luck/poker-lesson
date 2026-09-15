@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { LogoMark } from "@/components/ui/AppHeader";
 import { buttonClass } from "@/components/ui/Button";
 
-type MenuItem = { title: string; description: string; icon: ReactNode };
+type MenuItem = { title: string; description: string; icon: ReactNode; href?: string };
 
 const iconProps = {
   width: 22,
@@ -17,10 +17,11 @@ const iconProps = {
   "aria-hidden": true,
 } as const;
 
-// 各画面はまだ実装していないため、リンクは付けていない (M3 以降で追加)
+// 成績と設定はまだないため、リンクなしで「準備中」と表示する
 const menu: MenuItem[] = [
   {
     title: "ルール説明",
+    href: "/rules",
     description: "流れと用語を図で説明",
     icon: (
       <svg {...iconProps}>
@@ -30,6 +31,7 @@ const menu: MenuItem[] = [
   },
   {
     title: "役一覧",
+    href: "/hands",
     description: "10種類の役を強い順に",
     icon: (
       <svg {...iconProps}>
@@ -124,18 +126,36 @@ export default function Home() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {menu.map((item) => (
-            <div
-              key={item.title}
-              className="flex items-start gap-3.5 rounded-xl border border-border bg-surface p-5"
-            >
-              <span className="text-felt">{item.icon}</span>
-              <div className="flex flex-col gap-1">
-                <span className="text-[15px] font-bold">{item.title}</span>
-                <span className="text-[13px] text-muted">{item.description}</span>
+          {menu.map((item) => {
+            const body = (
+              <>
+                <span className="text-felt">{item.icon}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="flex items-center gap-2 text-[15px] font-bold">
+                    {item.title}
+                    {!item.href && (
+                      <span className="rounded-full bg-[#eef0f2] px-2 py-0.5 text-[11px] font-medium text-muted">準備中</span>
+                    )}
+                  </span>
+                  <span className="text-[13px] text-muted">{item.description}</span>
+                </div>
+              </>
+            );
+            const base = "flex items-start gap-3.5 rounded-xl border border-border bg-surface p-5";
+            return item.href ? (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={`${base} transition hover:border-[#c9cbc6] hover:shadow-[0_2px_8px_rgba(0,0,0,.06)]`}
+              >
+                {body}
+              </Link>
+            ) : (
+              <div key={item.title} className={base}>
+                {body}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </section>
       </main>
 

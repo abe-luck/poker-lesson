@@ -5,11 +5,14 @@ import { formatChips } from "@/content/ja";
 import { getPotTotal } from "@/engine/game";
 import type { Action, GameState, LegalActions } from "@/engine/types";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 
 type Props = {
   state: GameState;
   legal: LegalActions;
   onAct: (action: Action) => void;
+  /** 指定されていれば、フォールドの前に確認する (初心者モード) */
+  foldWarning?: string | null;
 };
 
 function Caption({ show, children }: { show: boolean; children: string }) {
@@ -17,10 +20,12 @@ function Caption({ show, children }: { show: boolean; children: string }) {
 }
 
 /** 親側で key を変えて、自分の番ごとに額をリセットする */
-export function ActionBar({ state, legal, onAct }: Props) {
+export function ActionBar({ state, legal, onAct, foldWarning }: Props) {
   const range = legal.bet ?? legal.raise;
   const kind = legal.bet ? "bet" : "raise";
   const [amount, setAmount] = useState(range?.min ?? 0);
+  const [confirmingFold, setConfirmingFold] = useState(false);
+  const fold = () => (foldWarning ? setConfirmingFold(true) : onAct({ type: "fold" }));
   const beginner = state.mode === "beginner";
 
   const pot = getPotTotal(state);
@@ -53,7 +58,7 @@ export function ActionBar({ state, legal, onAct }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <div className="flex flex-col gap-1">
-            <Button variant="danger" onClick={() => onAct({ type: "fold" })} className="sm:w-36">
+            <Button variant="danger" onClick={fold} className="sm:w-36">
               フォールド
             </Button>
             <Caption show={beginner}>このハンドを降ります</Caption>
@@ -102,6 +107,29 @@ export function ActionBar({ state, legal, onAct }: Props) {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={confirmingFold}
+        title="フォールドしますか？"
+        onClose={() => setConfirmingFold(false)}
+        footer={
+          <>
+            <Button size="lg" onClick={() => setConfirmingFold(false)}>
+              やめる
+            </Button>
+            {legal.check && (
+              <Button size="lg" onClick={() => onAct({ type: "check" })}>
+                チェックする
+              </Button>
+            )}
+            <Button variant="danger" size="lg" onClick={() => onAct({ type: "fold" })}>
+              フォールドする
+            </Button>
+          </>
+        }
+      >
+        <p className="text-[15px] leading-[1.8] text-pretty">{foldWarning}</p>
+      </Dialog>
     </div>
   );
 }

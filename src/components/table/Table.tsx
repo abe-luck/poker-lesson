@@ -3,6 +3,8 @@ import { actionLabel, formatChips, handName, STREET_NAMES } from "@/content/ja";
 import { sameCard } from "@/engine/cards";
 import { getPotTotal } from "@/engine/game";
 import type { GameState, HandRank, Player } from "@/engine/types";
+import { StrengthMeter } from "@/components/guide/StrengthMeter";
+import type { Guide } from "@/components/guide/useGuide";
 import { CardBack, CardSlot, PlayingCard } from "./PlayingCard";
 
 /** PC 表示での CPU 席の位置 (テーブル領域に対する %)。左 → 上 → 右 の時計回り */
@@ -99,10 +101,14 @@ function CpuSeat({ state, player, index, style }: { state: GameState; player: Pl
   );
 }
 
-function HumanSeat({ state, player, index }: { state: GameState; player: Player; index: number }) {
+function HumanSeat({ state, player, index, guide }: { state: GameState; player: Player; index: number; guide?: Guide | null }) {
   const info = seatInfo(state, player, index);
   const toAct = state.toActIndex === index;
-  const used = (info.hand?.bestFive ?? []).filter((c) => player.holeCards.some((h) => sameCard(h, c)));
+  // 初心者モードのプレイ中は今の役を、ハンド終了後はショーダウンの役を強調
+  const liveHand = !state.isHandOver ? guide?.hand : null;
+  const used = liveHand
+    ? liveHand.keyCards
+    : (info.hand?.bestFive ?? []).filter((c) => player.holeCards.some((h) => sameCard(h, c)));
 
   return (
     <div
@@ -131,6 +137,13 @@ function HumanSeat({ state, player, index }: { state: GameState; player: Player;
           <span className="text-[15px] text-muted tabular-nums">{formatChips(player.stack)}</span>
         </div>
         {info.hand && <span className="text-base font-bold">{handName(info.hand)}</span>}
+        {liveHand && (
+          <>
+            <span className="text-xs text-muted">今の役</span>
+            <span className="text-base leading-snug font-bold sm:text-[17px]">{liveHand.name}</span>
+            {guide?.strength != null && <StrengthMeter level={guide.strength} compact />}
+          </>
+        )}
         {info.label && (
           <span
             className={`self-start rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
@@ -145,15 +158,15 @@ function HumanSeat({ state, player, index }: { state: GameState; player: Player;
   );
 }
 
-function Board({ state }: { state: GameState }) {
+function Board({ state, guide }: { state: GameState; guide?: Guide | null }) {
   const winningCards = state.isHandOver
     ? state.result?.showdown
         .filter((s) => state.result?.pots[0]?.winnerIds.includes(s.playerId))
         .flatMap((s) => s.hand.bestFive) ?? []
-    : [];
+    : (guide?.hand?.keyCards ?? []);
 
   return (
-    <div className="flex h-[200px] flex-col items-center justify-center gap-3 rounded-3xl bg-felt px-3 shadow-[inset_0_0_0_8px_var(--felt-rim)] sm:h-[230px] md:absolute md:inset-x-[13%] md:top-[19%] md:bottom-[27%] md:h-auto md:rounded-full md:shadow-[inset_0_0_0_12px_var(--felt-rim)]">
+    <div className="flex h-[168px] flex-col items-center justify-center gap-2 rounded-3xl bg-felt px-3 sm:gap-3 shadow-[inset_0_0_0_8px_var(--felt-rim)] sm:h-[230px] md:absolute md:inset-x-[13%] md:top-[19%] md:bottom-[27%] md:h-auto md:rounded-full md:shadow-[inset_0_0_0_12px_var(--felt-rim)]">
       <div className="rounded-full bg-black/22 px-4 py-1.5 text-sm font-bold text-white tabular-nums sm:text-[15px]">
         ポット {formatChips(getPotTotal(state))}
       </div>
@@ -176,7 +189,7 @@ function Board({ state }: { state: GameState }) {
   );
 }
 
-export function Table({ state }: { state: GameState }) {
+export function Table({ state, guide }: { state: GameState; guide?: Guide | null }) {
   const humanIndex = state.players.findIndex((p) => p.isHuman);
   const cpus = state.players
     .map((player, index) => ({ player, index }))
@@ -198,8 +211,8 @@ export function Table({ state }: { state: GameState }) {
           />
         ))}
       </div>
-      <Board state={state} />
-      {humanIndex >= 0 && <HumanSeat state={state} player={state.players[humanIndex]} index={humanIndex} />}
+      <Board state={state} guide={guide} />
+      {humanIndex >= 0 && <HumanSeat state={state} player={state.players[humanIndex]} index={humanIndex} guide={guide} />}
     </div>
   );
 }

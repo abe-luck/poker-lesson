@@ -86,7 +86,7 @@ export function ModeSelect() {
           })}
         </div>
         <p className="text-center text-[13px] text-muted">
-          ガイドやおすすめの表示、CPUの強さの選択、トーナメントなどは順次追加していきます。
+          CPUの強さの選択、トーナメント、持ち時間などのプロモードの機能は順次追加していきます。
         </p>
       </main>
     </div>

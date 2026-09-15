@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { cardToString, parseCards } from "@/engine/cards";
-import { compareHands, evaluateBest, evaluateFive, HAND_CATEGORY } from "@/engine/evaluator";
+import { cardToString, createDeck, parseCards, seededRng, shuffle } from "@/engine/cards";
+import { compareHands, evaluateBest, evaluateFive, HAND_CATEGORY, scoreBest } from "@/engine/evaluator";
 
 const five = (text: string) => evaluateFive(parseCards(text));
 const best = (text: string) => evaluateBest(parseCards(text));
@@ -74,5 +74,33 @@ describe("evaluateBest: 7枚から選ぶ", () => {
 
   it("枚数が合わなければエラー", () => {
     expect(() => evaluateBest(parseCards("As Ks Qs Js"))).toThrow();
+  });
+});
+
+describe("scoreBest", () => {
+  it("ランダムな7枚どうしの比較で evaluateBest と同じ結果になる", () => {
+    const rng = seededRng(2024);
+    for (let i = 0; i < 3000; i++) {
+      const cards = shuffle(createDeck(), rng);
+      const size = 5 + (i % 3);
+      const a = cards.slice(0, size);
+      const b = cards.slice(size, size * 2);
+      expect(Math.sign(scoreBest(a) - scoreBest(b))).toBe(Math.sign(compareHands(evaluateBest(a), evaluateBest(b))));
+      expect(Math.floor(scoreBest(a) / 15 ** 5)).toBe(evaluateBest(a).category);
+    }
+  });
+
+  it.each([
+    ["As Ks Qs Js Ts 9s 8s"],
+    ["5d 4d 3d 2d Ad Kd Kc"],
+    ["7c 7d 7h Kh Kc Ks 2d"],
+    ["Ac 2d 3h 4s 5d 6c 6d"],
+    ["Ah Ad Kh Kd Qh Qd Jc"],
+  ])("境目のケース %s", (text) => {
+    const cards = parseCards(text);
+    const hand = evaluateBest(cards);
+    const reference = evaluateBest(parseCards(hand.bestFive.map(cardToString).join(" ")));
+    expect(scoreBest(cards)).toBe(scoreBest(hand.bestFive));
+    expect(Math.floor(scoreBest(cards) / 15 ** 5)).toBe(reference.category);
   });
 });
